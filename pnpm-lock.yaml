@@ -8,14 +8,17 @@ importers:
 
   .:
     dependencies:
-      '@iwer/devui':
-        specifier: ^1.1.2
-        version: 1.1.2(iwer@2.0.1)
-      babylonjs:
-        specifier: ^8.18.0
+      '@babylonjs/core':
+        specifier: 8.18.0
         version: 8.18.0
+      '@babylonjs/loaders':
+        specifier: 8.18.0
+        version: 8.18.0(@babylonjs/core@8.18.0)(babylonjs-gltf2interface@8.18.0)
+      '@iwer/devui':
+        specifier: 1.1.2
+        version: 1.1.2(iwer@2.0.1)
       iwer:
-        specifier: ^2.0.1
+        specifier: 2.0.1
         version: 2.0.1
     devDependencies:
       vite:
@@ -23,6 +26,15 @@ importers:
         version: 7.0.6
 
 packages:
+
+  '@babylonjs/core@8.18.0':
+    resolution: {integrity: sha512-eBXbOCRX7i5H/lNeqJSe8nsC9d9eIp4i/3Okzc+zwY1bi7HKFf3HT/bjut0y5xd4cSAKRfty5JMJsDBl12n0rg==}
+
+  '@babylonjs/loaders@8.18.0':
+    resolution: {integrity: sha512-Siqf/dGzCYJBWGOVQOTvfAxMW7/xrs+rmPXVpDwIOpJagqksjnzjcZhX4aFaEetrTdOyWy/8J44Ak98DBeInOQ==}
+    peerDependencies:
+      '@babylonjs/core': ^8.0.0
+      babylonjs-gltf2interface: ^8.0.0
 
   '@emotion/is-prop-valid@1.2.2':
     resolution: {integrity: sha512-uNsoYd37AFmaCdXlg6EYD1KaPOaRWRByMCYzbKUX4+hhMfrxdVSelShywL4JVaAeM/eHUOSprYBQls+/neX3pw==}
@@ -324,8 +336,8 @@ packages:
   '@types/stylis@4.2.5':
     resolution: {integrity: sha512-1Xve+NMN7FWjY14vLoY5tL3BVEQ/n42YLwaqJIPYhotZ9uBHt87VceMwWQpzmdEt2TNXIorIFG+YeCUUW7RInw==}
 
-  babylonjs@8.18.0:
-    resolution: {integrity: sha512-ca6bW21v+9GKSLdXjs4wWXSFXPP0dhNk+sMoSoX0Zwpx5IWuqcyCaPGuu1ducpA+KzrGOibX7Aljjw2/ym/O5w==}
+  babylonjs-gltf2interface@8.18.0:
+    resolution: {integrity: sha512-+ajx9T0S41gs89mFheZNr3LUvIFaII1FGtWaGECwBFBMv/iaOB8Tby8u8m6kYYaHa9fxDIuh9h+Yg2OVFrHFBA==}
 
   camelize@1.0.1:
     resolution: {integrity: sha512-dU+Tx2fsypxTgtLoE36npi3UqcjSSMNYfkqgmoEhtZrraP5VWq0K7FkWVTYa8eMPtnU/G2txVsfdCJTn9uzpuQ==}
@@ -509,6 +521,13 @@ packages:
         optional: true
 
 snapshots:
+
+  '@babylonjs/core@8.18.0': {}
+
+  '@babylonjs/loaders@8.18.0(@babylonjs/core@8.18.0)(babylonjs-gltf2interface@8.18.0)':
+    dependencies:
+      '@babylonjs/core': 8.18.0
+      babylonjs-gltf2interface: 8.18.0
 
   '@emotion/is-prop-valid@1.2.2':
     dependencies:
@@ -703,7 +722,7 @@ snapshots:
 
   '@types/stylis@4.2.5': {}
 
-  babylonjs@8.18.0: {}
+  babylonjs-gltf2interface@8.18.0: {}
 
   camelize@1.0.1: {}
 

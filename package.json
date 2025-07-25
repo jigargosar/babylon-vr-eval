@@ -12,8 +12,9 @@
     "vite": "^7.0.4"
   },
   "dependencies": {
-    "@iwer/devui": "^1.1.2",
-    "babylonjs": "^8.18.0",
-    "iwer": "^2.0.1"
+    "@babylonjs/core": "8.18.0",
+    "@babylonjs/loaders": "8.18.0",
+    "@iwer/devui": "1.1.2",
+    "iwer": "2.0.1"
   }
 }
