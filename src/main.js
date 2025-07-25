@@ -1,24 +1,32 @@
-import './style.css'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
+import { Engine, Scene, Vector3, HemisphericLight, MeshBuilder, WebXRDefaultExperience } from 'babylonjs';
+import { XRDevice, metaQuest3 } from 'iwer';
+import { DevUI } from '@iwer/devui';
 
-document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+window.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('renderCanvas');
+    const engine = new Engine(canvas, true);
+    const scene = new Scene(engine);
 
-setupCounter(document.querySelector('#counter'))
+    // Ground plane + lighting
+    MeshBuilder.CreateGround('ground', { width: 20, height: 20 }, scene);
+    new HemisphericLight('light', new Vector3(0, 1, 0), scene);
+
+    // Initialize IWER runtime and DevUI overlay
+    const xrDevice = new XRDevice(metaQuest3);
+    xrDevice.installRuntime();
+    new DevUI(xrDevice);
+
+    // WebXR experience with hand tracking
+    WebXRDefaultExperience.CreateAsync(scene, {
+        uiOptions: {
+            sessionMode: 'immersive-vr',
+            referenceSpaceType: 'local-floor'
+        },
+        optionalFeatures: ['hand-tracking']
+    }).then(() => {
+        engine.runRenderLoop(() => scene.render());
+    });
+
+    // Resize handler
+    window.addEventListener('resize', () => engine.resize());
+});
