@@ -4,6 +4,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
+import { WebXRDefaultExperience } from '@babylonjs/core/XR/webXRDefaultExperience';
 import '@babylonjs/core/Helpers/sceneHelpers';
 
 function setupWASDControls(camera) {
@@ -28,27 +29,35 @@ function setupWASDControls(camera) {
     camera.keysDownwardSpeed = 0.5;
 }
 
-const canvas = document.getElementById('renderCanvas');
-const engine = new Engine(canvas, true);
-const scene = new Scene(engine);
+async function init() {
+    const canvas = document.getElementById('renderCanvas');
+    const engine = new Engine(canvas, true);
+    const scene = new Scene(engine);
 
-const camera = new UniversalCamera('camera1', new Vector3(0, 5, -10), scene);
-camera.setTarget(Vector3.Zero());
-camera.attachControl(canvas, true);
-camera.speed = 0.5;
-camera.angularSensibility = 5000;
-setupWASDControls(camera);
+    const camera = new UniversalCamera('camera1', new Vector3(0, 5, -10), scene);
+    camera.setTarget(Vector3.Zero());
+    camera.attachControl(canvas, true);
+    camera.speed = 0.5;
+    camera.angularSensibility = 5000;
+    setupWASDControls(camera);
 
-canvas.addEventListener('click', () => {
-    engine.enterPointerlock();
-});
+    // canvas.addEventListener('click', () => {
+    //     engine.enterPointerlock();
+    // });
 
-const light = new HemisphericLight('light', Vector3.Up(), scene);
+    const light = new HemisphericLight('light', Vector3.Up(), scene);
 
-const box = MeshBuilder.CreateBox('box', { size: 1 }, scene);
-box.position.y = 1;
+    const box = MeshBuilder.CreateBox('box', { size: 1 }, scene);
+    box.position.y = 1;
 
-scene.createDefaultEnvironment();
+    scene.createDefaultEnvironment();
 
-engine.runRenderLoop(() => scene.render());
-window.addEventListener('resize', () => engine.resize());
+    const xrHelper = await scene.createDefaultXRExperienceAsync({
+        floorMeshes: []
+    });
+
+    engine.runRenderLoop(() => scene.render());
+    window.addEventListener('resize', () => engine.resize());
+}
+
+document.addEventListener('DOMContentLoaded', init);
