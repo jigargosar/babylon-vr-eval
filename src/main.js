@@ -4,6 +4,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
+import '@babylonjs/core/Helpers/sceneHelpers';
 
 const canvas = document.getElementById('renderCanvas');
 const engine = new Engine(canvas, true);
@@ -14,9 +15,10 @@ camera.attachControl(canvas, true);
 
 const light = new HemisphericLight('light', Vector3.Up(), scene);
 
-const ground = MeshBuilder.CreateGround('ground', { width: 6, height: 6 }, scene);
 const box = MeshBuilder.CreateBox('box', { size: 1 }, scene);
 box.position.y = 1;
+
+scene.createDefaultEnvironment();
 
 engine.runRenderLoop(() => scene.render());
 window.addEventListener('resize', () => engine.resize());
