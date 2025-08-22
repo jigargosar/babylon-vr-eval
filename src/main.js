@@ -1,43 +1,22 @@
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { Scene } from '@babylonjs/core/scene';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
-import '@babylonjs/core/Helpers/sceneHelpers';
+import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 
-window.addEventListener('DOMContentLoaded', () => {
-    try {
-        const canvas = document.getElementById('renderCanvas');
-        console.log('Canvas found:', canvas);
-        
-        const engine = new Engine(canvas, true);
-        console.log('Engine created');
-        
-        const scene = new Scene(engine);
-        console.log('Scene created');
+const canvas = document.getElementById('renderCanvas');
+const engine = new Engine(canvas, true);
+const scene = new Scene(engine);
 
-        const camera = new FreeCamera('camera1', new Vector3(0, 5, -10), scene);
-        camera.setTarget(Vector3.Zero());
-        camera.attachControl(canvas, true);
-        console.log('Camera created');
+const camera = new ArcRotateCamera('camera', -Math.PI / 2, Math.PI / 2.5, 10, Vector3.Zero(), scene);
+camera.attachControl(canvas, true);
 
-        const light = new HemisphericLight('light', new Vector3(0, 1, 0), scene);
-        light.intensity = 0.7;
-        console.log('Light created');
+const light = new HemisphericLight('light', Vector3.Up(), scene);
 
-        const sphere = MeshBuilder.CreateSphere('sphere', { diameter: 2, segments: 32 }, scene);
-        sphere.position.y = 1;
-        console.log('Sphere created');
-        
-        scene.createDefaultEnvironment();
-        console.log('Default environment created');
+const ground = MeshBuilder.CreateGround('ground', { width: 6, height: 6 }, scene);
+const box = MeshBuilder.CreateBox('box', { size: 1 }, scene);
+box.position.y = 1;
 
-        engine.runRenderLoop(() => scene.render());
-        window.addEventListener('resize', () => engine.resize());
-        
-        console.log('Babylon.js setup complete');
-    } catch (error) {
-        console.error('Setup failed:', error);
-    }
-});
+engine.runRenderLoop(() => scene.render());
+window.addEventListener('resize', () => engine.resize());
