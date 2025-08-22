@@ -13,6 +13,8 @@ const scene = new Scene(engine);
 const camera = new FreeCamera('camera1', new Vector3(0, 5, -10), scene);
 camera.setTarget(Vector3.Zero());
 camera.attachControl(canvas, true);
+camera.speed = 0.5;
+camera.angularSensibility = 5000;
 
 const light = new HemisphericLight('light', Vector3.Up(), scene);
 
