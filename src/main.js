@@ -4,8 +4,10 @@ import {Vector3} from '@babylonjs/core/Maths/math.vector';
 import {HemisphericLight} from '@babylonjs/core/Lights/hemisphericLight';
 import {MeshBuilder} from '@babylonjs/core/Meshes/meshBuilder';
 import {UniversalCamera} from '@babylonjs/core/Cameras/universalCamera';
-import {WebXRDefaultExperience} from '@babylonjs/core/XR/webXRDefaultExperience';
+import {StandardMaterial} from '@babylonjs/core/Materials/standardMaterial';
+import {Color3} from '@babylonjs/core/Maths/math.color';
 import '@babylonjs/core/Helpers/sceneHelpers';
+import "@babylonjs/loaders";
 
 function setupWASDControls(camera) {
     const KEY_W = 87;
@@ -44,22 +46,80 @@ async function init() {
     const engine = new Engine(canvas, true);
     const scene = new Scene(engine);
 
-    setupCamera(scene, canvas);
+    // setupCamera(scene, canvas);
 
     // canvas.addEventListener('click', () => {
     //     engine.enterPointerlock();
     // });
 
     const light = new HemisphericLight('light', Vector3.Up(), scene);
+    light.intensity = 0.8;
 
-    const box = MeshBuilder.CreateBox('box', {size: 1}, scene);
-    box.position.y = 1;
+    // Create ground plane
+    const ground = MeshBuilder.CreateGround('ground', {width: 20, height: 20}, scene);
+    
+    // Create various objects to explore
+    const redBox = MeshBuilder.CreateBox('redBox', {size: 1}, scene);
+    redBox.position = new Vector3(3, 0.5, 2);
+    const redMaterial = new StandardMaterial('redMaterial', scene);
+    redMaterial.diffuseColor = new Color3(1, 0, 0);
+    redBox.material = redMaterial;
 
-    scene.createDefaultEnvironment();
+    const blueBox = MeshBuilder.CreateBox('blueBox', {width: 1, height: 2, depth: 1}, scene);
+    blueBox.position = new Vector3(-4, 1, 1);
+    const blueMaterial = new StandardMaterial('blueMaterial', scene);
+    blueMaterial.diffuseColor = new Color3(0, 0, 1);
+    blueBox.material = blueMaterial;
+
+    const greenSphere = MeshBuilder.CreateSphere('greenSphere', {diameter: 1.5}, scene);
+    greenSphere.position = new Vector3(0, 0.75, 5);
+    const greenMaterial = new StandardMaterial('greenMaterial', scene);
+    greenMaterial.diffuseColor = new Color3(0, 1, 0);
+    greenSphere.material = greenMaterial;
+
+    const yellowCylinder = MeshBuilder.CreateCylinder('yellowCylinder', {height: 3, diameter: 1}, scene);
+    yellowCylinder.position = new Vector3(-2, 1.5, -3);
+    const yellowMaterial = new StandardMaterial('yellowMaterial', scene);
+    yellowMaterial.diffuseColor = new Color3(1, 1, 0);
+    yellowCylinder.material = yellowMaterial;
+
+    // Create some walls for spatial reference
+    const wall1 = MeshBuilder.CreateBox('wall1', {width: 10, height: 3, depth: 0.2}, scene);
+    wall1.position = new Vector3(0, 1.5, 8);
+    const grayMaterial = new StandardMaterial('grayMaterial', scene);
+    grayMaterial.diffuseColor = new Color3(0.8, 0.8, 0.8);
+    wall1.material = grayMaterial;
+
+    const wall2 = MeshBuilder.CreateBox('wall2', {width: 0.2, height: 3, depth: 10}, scene);
+    wall2.position = new Vector3(8, 1.5, 0);
+    wall2.material = grayMaterial;
+
+    scene.createDefaultEnvironment({
+        createSkybox: true,
+        skyboxSize: 50,
+        createGround: false
+    });
 
     const xrHelper = await scene.createDefaultXRExperienceAsync({
-        floorMeshes: []
+        floorMeshes: [ground]
     });
+
+    console.log('XR Helper created:', xrHelper);
+    console.log('Base Experience:', xrHelper.baseExperience);
+    console.log('Teleportation:', xrHelper.teleportation);
+
+    // Enable teleportation
+    if (xrHelper.teleportation) {
+        xrHelper.teleportation.addFloorMesh(ground);
+        console.log('Teleportation enabled for ground mesh');
+    }
+
+    // Log when entering/exiting VR
+    if (xrHelper.baseExperience) {
+        xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+            console.log('XR State changed:', state);
+        });
+    }
 
     engine.runRenderLoop(() => scene.render());
     window.addEventListener('resize', () => engine.resize());
