@@ -57,7 +57,7 @@ async function init() {
 
     // Create ground plane
     const ground = MeshBuilder.CreateGround('ground', {width: 20, height: 20}, scene);
-    
+
     // Create various objects to explore
     const redBox = MeshBuilder.CreateBox('redBox', {size: 1}, scene);
     redBox.position = new Vector3(3, 0.5, 2);
@@ -104,20 +104,20 @@ async function init() {
         floorMeshes: [ground]
     });
 
-    console.log('XR Helper created:', xrHelper);
-    console.log('Base Experience:', xrHelper.baseExperience);
-    console.log('Teleportation:', xrHelper.teleportation);
+    // console.log('XR Helper created:', xrHelper);
+    // console.log('Base Experience:', xrHelper.baseExperience);
+    // console.log('Teleportation:', xrHelper.teleportation);
 
     // Enable teleportation
     if (xrHelper.teleportation) {
         xrHelper.teleportation.addFloorMesh(ground);
-        console.log('Teleportation enabled for ground mesh');
+        // console.log('Teleportation enabled for ground mesh');
     }
 
     // Log when entering/exiting VR
     if (xrHelper.baseExperience) {
         xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-            console.log('XR State changed:', state);
+            // console.log('XR State changed:', state);
         });
     }
 
