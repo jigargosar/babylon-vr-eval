@@ -46,7 +46,7 @@ async function init() {
     const engine = new Engine(canvas, true);
     const scene = new Scene(engine);
 
-    // setupCamera(scene, canvas);
+    setupCamera(scene, canvas);
 
     // canvas.addEventListener('click', () => {
     //     engine.enterPointerlock();
