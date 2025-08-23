@@ -13,8 +13,6 @@
   },
   "dependencies": {
     "@babylonjs/core": "8.24.0",
-    "@babylonjs/loaders": "8.24.0",
-    "@iwer/devui": "1.1.2",
-    "iwer": "2.1.1"
+    "@babylonjs/loaders": "8.24.0"
   }
 }
