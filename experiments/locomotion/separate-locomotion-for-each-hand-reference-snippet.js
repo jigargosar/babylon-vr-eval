@@ -1,64 +1,67 @@
-import { WebXRFeatureName } from "@babylonjs/core/XR/webXRFeaturesManager";
+// 1. Import & register the two features so enableFeature won't be undefined
+import { WebXRControllerTeleportation } from "@babylonjs/core/XR/features/WebXRControllerTeleportation";
+import { WebXRControllerMovement    } from "@babylonjs/core/XR/features/WebXRControllerMovement";
+import { WebXRFeatureName            } from "@babylonjs/core/XR/webXRFeaturesManager";
 
-// Toggle this flag to switch between handedness-based mapping (false)
-// or hardcoded controller indices: 0 → teleport, 1 → planar movement (true)
+// Toggle this flag to switch between handedness-based (false)
+// or hardcoded controller-index mapping: 0 → teleport, 1 → move (true)
 const useHardcodedHands = false;
 
 async function initXR(scene, groundMesh) {
-    // 1. Create XR experience with built-in locomotion disabled
+    // 2. Create default XR experience with built-in teleport & movement disabled
     const xr = await scene.createDefaultXRExperienceAsync({
-        floorMeshes: [groundMesh],
+        floorMeshes:        [groundMesh],
         disableTeleportation: true,
-        disableMovement:    true
+        disableMovement:      true
     });
 
-    // 2. Enable features but don’t attach them yet
-    const teleportation = xr.featuresManager.enableFeature(
-        WebXRFeatureName.TELEPORTATION,
+    // 3. Grab the feature manager from the baseExperience helper
+    const fm = xr.baseExperience.featuresManager;
+
+    // 4. Enable (but do NOT auto-attach) each feature by its static Name
+    const teleport = fm.enableFeature(
+        WebXRControllerTeleportation.Name,
         "stable",
         { xrInput: xr.input, floorMeshes: [groundMesh] }
     );
-    const planarMovement = xr.featuresManager.enableFeature(
-        WebXRFeatureName.PLANAR_MOBILITY,
+    const movement = fm.enableFeature(
+        WebXRControllerMovement.Name,
         "stable",
-        { xrInput: xr.input, floorMeshes: [groundMesh] }
+        { xrInput: xr.input }
     );
 
-    // 3. Track controllers in an array so we can hardcode by index if needed
+    // 5. Track connected controllers for optional hard-coding
     const controllers = [];
 
     xr.input.onControllerAddedObservable.add((controller) => {
         controllers.push(controller);
-        assignFeatures(controller, controllers.indexOf(controller));
+        assign(controller, controllers.indexOf(controller));
     });
 
     xr.input.onControllerRemovedObservable.add((controller) => {
-        teleportation.detachFromController(controller);
-        planarMovement.detachFromController(controller);
+        teleport.detach(controller);
+        movement.detach(controller);
 
         const idx = controllers.indexOf(controller);
-        if (idx !== -1) {
-            controllers.splice(idx, 1);
-        }
+        if (idx !== -1) controllers.splice(idx, 1);
     });
 
-    // 4. Decide whether to attach teleportation or planar movement
-    function assignFeatures(controller, index) {
+    // 6. Attach based on handedness or hardcoded index
+    function assign(controller, index) {
         const hand = controller.inputSource.handedness; // "left" | "right" | "none"
 
-        const doTeleport = useHardcodedHands
+        const wantsTeleport = useHardcodedHands
             ? index === 0
             : hand === "left";
 
-        const doPlanar = useHardcodedHands
+        const wantsMove = useHardcodedHands
             ? index === 1
             : hand === "right";
 
-        if (doTeleport) teleportation.attachToController(controller);
-        if (doPlanar)    planarMovement.attachToController(controller);
+        if (wantsTeleport) teleport.attach(controller);
+        if (wantsMove)     movement.attach(controller);
     }
 }
 
-// Example usage:
-// assume you have a Babylon scene and a groundMesh already created
+// Usage (once your Babylon scene and groundMesh exist):
 initXR(scene, groundMesh);
