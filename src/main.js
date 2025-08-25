@@ -102,13 +102,8 @@ async function init() {
     });
 
     const xrHelper = await scene.createDefaultXRExperienceAsync({
-        floorMeshes: [ground]
+        disableTeleportation: true
     });
-
-    // Enable teleportation
-    if (xrHelper.teleportation) {
-        xrHelper.teleportation.addFloorMesh(ground);
-    }
 
     // Fix VR spawn position - desktop camera affects VR spawn location
     // When desktop camera is active, VR inherits its position instead of starting at origin
