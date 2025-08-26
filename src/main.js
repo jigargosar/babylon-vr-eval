@@ -124,102 +124,6 @@ function setupScene(scene) {
 		createGround: false,
 	});
 }
-
-function setupSabers(scene, xr) {
-
-	// Beat Saber - Controller tracking and saber visualization
-	const sabers = {};
-
-	// Listen for controller connections
-
-	xr.input.onControllerAddedObservable.add((controller) => {
-		console.log('Controller connected:', controller.uniqueId);
-
-		// Create saber for this controller
-		const saber = MeshBuilder.CreateCylinder(
-			`saber_${controller.uniqueId}`,
-			{
-				height: 1.5,
-				diameter: 0.05,
-			},
-			scene,
-		);
-
-		// Color based on hand (assuming left=blue, right=red)
-		const saberMaterial = new StandardMaterial(
-			`saberMaterial_${controller.uniqueId}`,
-			scene,
-		);
-		// Default to blue, will be set properly when we detect handedness
-		saberMaterial.diffuseColor = new Color3(0, 0.5, 1);
-		saberMaterial.emissiveColor = new Color3(0, 0.2, 0.5);
-		saber.material = saberMaterial;
-
-		// Store saber reference
-		sabers[controller.uniqueId] = {
-			controller: controller,
-			saber: saber,
-			material: saberMaterial,
-		};
-
-		// Update saber position each frame
-		controller.onMotionControllerInitObservable.add((motionController) => {
-			console.log(
-				'Motion controller initialized:',
-				motionController.handness,
-			);
-
-			// Set color based on handedness
-			if (motionController.handness === 'left') {
-				saberMaterial.diffuseColor = new Color3(0, 0.5, 1); // Blue
-				saberMaterial.emissiveColor = new Color3(0, 0.2, 0.5);
-			} else if (motionController.handness === 'right') {
-				saberMaterial.diffuseColor = new Color3(1, 0.2, 0); // Red
-				saberMaterial.emissiveColor = new Color3(0.5, 0.1, 0);
-			}
-		});
-	});
-
-	xr.input.onControllerRemovedObservable.add((controller) => {
-		console.log('Controller disconnected:', controller.uniqueId);
-
-		// Clean up saber
-		if (sabers[controller.uniqueId]) {
-			sabers[controller.uniqueId].saber.dispose();
-			delete sabers[controller.uniqueId];
-		}
-	});
-
-	// Update saber positions every frame
-	scene.registerBeforeRender(() => {
-		Object.values(sabers).forEach(({ controller, saber }) => {
-			if (controller.grip) {
-				// Position saber at controller grip position
-				saber.position.copyFrom(controller.grip.position);
-
-				// Rotate saber to point forward like a lightsaber
-				// Apply 90-degree rotation around X-axis to make cylinder point forward
-				const baseRotation = controller.grip.rotationQuaternion.clone();
-				const forwardRotation = Quaternion.FromEulerAngles(
-					Math.PI / 2,
-					0,
-					0,
-				);
-				saber.rotationQuaternion =
-					baseRotation.multiply(forwardRotation);
-
-				// Offset saber forward from controller grip
-				const forward = new Vector3(0, 0.75, 0); // Move along cylinder's length
-				forward.rotateByQuaternionToRef(
-					saber.rotationQuaternion,
-					forward,
-				);
-				saber.position.addInPlace(forward);
-			}
-		});
-	});
-}
-
 async function init() {
 	const canvas = document.getElementById('renderCanvas');
 	// noinspection JSCheckFunctionSignatures
@@ -245,6 +149,92 @@ async function init() {
 
 	engine.runRenderLoop(() => scene.render());
 	window.addEventListener('resize', () => engine.resize());
+}
+
+
+function setupSabers(scene, xr) {
+	// Helper function to create saber with all properties
+	const createSaber = (name, material, scene) => {
+		const mesh = MeshBuilder.CreateCylinder(name, { height: 1.5, diameter: 0.05 }, scene);
+		mesh.material = material;
+		mesh.setEnabled(false);
+		return mesh;
+	};
+
+	// Create materials
+	const createBlueMaterial = (scene) => {
+		const material = new StandardMaterial('blueSaberMaterial', scene);
+		material.diffuseColor = new Color3(0, 0.5, 1);
+		material.emissiveColor = new Color3(0, 0.2, 0.5);
+		return material;
+	};
+
+	const createRedMaterial = (scene) => {
+		const material = new StandardMaterial('redSaberMaterial', scene);
+		material.diffuseColor = new Color3(1, 0.2, 0);
+		material.emissiveColor = new Color3(0.5, 0.1, 0);
+		return material;
+	};
+
+	// Pre-create both sabers at startup
+	const sabers = {
+		left: {
+			mesh: createSaber('leftSaber', createBlueMaterial(scene), scene),
+			controller: null
+		},
+		right: {
+			mesh: createSaber('rightSaber', createRedMaterial(scene), scene),
+			controller: null
+		}
+	};
+
+	// Controller connection logic
+	xr.input.onControllerAddedObservable.add((controller) => {
+		console.log('Controller connected:', controller.uniqueId);
+
+		controller.onMotionControllerInitObservable.add((motionController) => {
+			console.log('Motion controller initialized:', motionController.handness);
+
+			const saber = sabers[motionController.handness];
+			if (saber) {
+				saber.controller = controller;
+				saber.mesh.setEnabled(true);
+			}
+		});
+	});
+
+	xr.input.onControllerRemovedObservable.add((controller) => {
+		console.log('Controller disconnected:', controller.uniqueId);
+
+		// Find and disable the saber for this controller
+		['left', 'right'].forEach(hand => {
+			if (sabers[hand].controller === controller) {
+				sabers[hand].mesh.setEnabled(false);
+				sabers[hand].controller = null;
+			}
+		});
+	});
+
+	// Update saber positions every frame
+	scene.registerBeforeRender(() => {
+		['left', 'right'].forEach(hand => {
+			const saber = sabers[hand];
+			if (saber.controller?.grip) {
+				// Position saber at controller grip position
+				saber.mesh.position.copyFrom(saber.controller.grip.position);
+
+				// Rotate saber to point forward like a lightsaber
+				const baseRotation = saber.controller.grip.rotationQuaternion.clone();
+				const forwardRotation = Quaternion.FromEulerAngles(Math.PI / 2, 0, 0);
+				saber.mesh.rotationQuaternion = baseRotation.multiply(forwardRotation);
+
+				// Offset saber forward from controller grip
+				const forward = new Vector3(0, 0.75, 0);
+				forward.rotateByQuaternionToRef(saber.mesh.rotationQuaternion, forward);
+				saber.mesh.position.addInPlace(forward);
+			}
+		});
+	});
 }
 
 document.addEventListener('DOMContentLoaded', init);
