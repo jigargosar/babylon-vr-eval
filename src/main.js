@@ -9,6 +9,7 @@ import {Color3} from '@babylonjs/core/Maths/math.color';
 import {Quaternion} from '@babylonjs/core/Maths/math.vector';
 import '@babylonjs/core/Helpers/sceneHelpers';
 import "@babylonjs/loaders";
+import {WebXRState} from "@babylonjs/core";
 
 function setupWASDControls(camera) {
     const KEY_W = 87;
@@ -38,20 +39,21 @@ function setupCamera(scene) {
     camera.speed = 0.5;
     camera.angularSensibility = 5000;
     setupWASDControls(camera);
-    const engine = scene.getEngine();
+    camera.attachControl();
+    // const engine = scene.getEngine();
     // engine.getRenderingCanvas().addEventListener('click', () => {
     //     engine.enterPointerlock();
     // });
-    camera.attachControl();
     return camera;
 }
 
 async function init() {
     const canvas = document.getElementById('renderCanvas');
+    // noinspection JSCheckFunctionSignatures
     const engine = new Engine(canvas, true);
     const scene = new Scene(engine);
 
-    setupCamera(scene);
+    const desktopCamera = setupCamera(scene);
 
     const light = new HemisphericLight('light', Vector3.Up(), scene);
     light.intensity = 0.8;
@@ -101,20 +103,15 @@ async function init() {
         createGround: false
     });
 
+    // noinspection JSUnresolvedReference
     const xrHelper = await scene.createDefaultXRExperienceAsync({
         disableTeleportation: true
     });
 
-    // Fix VR spawn position - desktop camera affects VR spawn location
-    // When desktop camera is active, VR inherits its position instead of starting at origin
-    // Solution: Force VR camera to ground center (0,0) but preserve natural VR height
     if (xrHelper.baseExperience) {
         xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-            if (state === 2) { // WebXRState.IN_XR = 2
-                // Reset to ground center but keep VR height (~1.6-1.7m)
-                xrHelper.baseExperience.camera.position.x = 0;
-                xrHelper.baseExperience.camera.position.z = 0;
-                // Y position preserved for natural standing height
+            if (state === WebXRState.ENTERING_XR) {
+                scene.removeCamera(desktopCamera);
             }
         });
     }
