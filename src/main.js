@@ -11,29 +11,7 @@ import '@babylonjs/core/Helpers/sceneHelpers';
 import '@babylonjs/loaders';
 import { WebXRState } from '@babylonjs/core';
 
-function setupWASDControls(camera) {
-	const KEY_W = 87;
-	const KEY_A = 65;
-	const KEY_S = 83;
-	const KEY_D = 68;
-	const KEY_Q = 81;
-	const KEY_E = 69;
-	const KEY_UP = 38;
-	const KEY_DOWN = 40;
-	const KEY_LEFT = 37;
-	const KEY_RIGHT = 39;
-
-	camera.keysUp = [KEY_W, KEY_UP];
-	camera.keysDown = [KEY_S, KEY_DOWN];
-	camera.keysLeft = [KEY_A, KEY_LEFT];
-	camera.keysRight = [KEY_D, KEY_RIGHT];
-	camera.keysUpward = [KEY_Q];
-	camera.keysDownward = [KEY_E];
-	camera.keysUpwardSpeed = 0.5;
-	camera.keysDownwardSpeed = 0.5;
-}
-
-function setupCamera(scene) {
+function setupDesktopCamera(scene) {
 	const camera = new UniversalCamera(
 		'camera1',
 		new Vector3(0, 5, -10),
@@ -49,20 +27,36 @@ function setupCamera(scene) {
 	//     engine.enterPointerlock();
 	// });
 	return camera;
+
+	function setupWASDControls(camera) {
+		const KEY_W = 87;
+		const KEY_A = 65;
+		const KEY_S = 83;
+		const KEY_D = 68;
+		const KEY_Q = 81;
+		const KEY_E = 69;
+		const KEY_UP = 38;
+		const KEY_DOWN = 40;
+		const KEY_LEFT = 37;
+		const KEY_RIGHT = 39;
+
+		camera.keysUp = [KEY_W, KEY_UP];
+		camera.keysDown = [KEY_S, KEY_DOWN];
+		camera.keysLeft = [KEY_A, KEY_LEFT];
+		camera.keysRight = [KEY_D, KEY_RIGHT];
+		camera.keysUpward = [KEY_Q];
+		camera.keysDownward = [KEY_E];
+		camera.keysUpwardSpeed = 0.5;
+		camera.keysDownwardSpeed = 0.5;
+	}
 }
 
-async function init() {
-	const canvas = document.getElementById('renderCanvas');
-	// noinspection JSCheckFunctionSignatures
-	const engine = new Engine(canvas, true);
-	const scene = new Scene(engine);
-
-	const desktopCamera = setupCamera(scene);
-
+function setupScene(scene) {
 	const light = new HemisphericLight('light', Vector3.Up(), scene);
 	light.intensity = 0.8;
 
 	// Create ground plane
+	// noinspection JSUnusedLocalSymbols
 	const ground = MeshBuilder.CreateGround(
 		'ground',
 		{ width: 20, height: 20 },
@@ -124,12 +118,20 @@ async function init() {
 	);
 	wall2.position = new Vector3(8, 1.5, 0);
 	wall2.material = grayMaterial;
-
 	scene.createDefaultEnvironment({
 		createSkybox: true,
 		skyboxSize: 50,
 		createGround: false,
 	});
+}
+
+async function init() {
+	const canvas = document.getElementById('renderCanvas');
+	// noinspection JSCheckFunctionSignatures
+	const engine = new Engine(canvas, true);
+	const scene = new Scene(engine);
+	setupScene(scene);
+	const desktopCamera = setupDesktopCamera(scene);
 
 	// noinspection JSUnresolvedReference
 	const xrHelper = await scene.createDefaultXRExperienceAsync({
