@@ -125,92 +125,70 @@ function setupScene(scene) {
 	});
 }
 
-async function init() {
-	const canvas = document.getElementById('renderCanvas');
-	// noinspection JSCheckFunctionSignatures
-	const engine = new Engine(canvas, true);
-	const scene = new Scene(engine);
-	setupScene(scene);
-	const desktopCamera = setupDesktopCamera(scene);
-
-	// noinspection JSUnresolvedReference
-	const xrHelper = await scene.createDefaultXRExperienceAsync({
-		disableTeleportation: true,
-	});
-
-	if (xrHelper.baseExperience) {
-		xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-			if (state === WebXRState.ENTERING_XR) {
-				scene.removeCamera(desktopCamera);
-			}
-		});
-	}
+function setupSabers(scene, xr) {
 
 	// Beat Saber - Controller tracking and saber visualization
 	const sabers = {};
 
 	// Listen for controller connections
-	if (xrHelper.input) {
-		xrHelper.input.onControllerAddedObservable.add((controller) => {
-			console.log('Controller connected:', controller.uniqueId);
 
-			// Create saber for this controller
-			const saber = MeshBuilder.CreateCylinder(
-				`saber_${controller.uniqueId}`,
-				{
-					height: 1.5,
-					diameter: 0.05,
-				},
-				scene,
+	xr.input.onControllerAddedObservable.add((controller) => {
+		console.log('Controller connected:', controller.uniqueId);
+
+		// Create saber for this controller
+		const saber = MeshBuilder.CreateCylinder(
+			`saber_${controller.uniqueId}`,
+			{
+				height: 1.5,
+				diameter: 0.05,
+			},
+			scene,
+		);
+
+		// Color based on hand (assuming left=blue, right=red)
+		const saberMaterial = new StandardMaterial(
+			`saberMaterial_${controller.uniqueId}`,
+			scene,
+		);
+		// Default to blue, will be set properly when we detect handedness
+		saberMaterial.diffuseColor = new Color3(0, 0.5, 1);
+		saberMaterial.emissiveColor = new Color3(0, 0.2, 0.5);
+		saber.material = saberMaterial;
+
+		// Store saber reference
+		sabers[controller.uniqueId] = {
+			controller: controller,
+			saber: saber,
+			material: saberMaterial,
+		};
+
+		// Update saber position each frame
+		controller.onMotionControllerInitObservable.add((motionController) => {
+			console.log(
+				'Motion controller initialized:',
+				motionController.handness,
 			);
 
-			// Color based on hand (assuming left=blue, right=red)
-			const saberMaterial = new StandardMaterial(
-				`saberMaterial_${controller.uniqueId}`,
-				scene,
-			);
-			// Default to blue, will be set properly when we detect handedness
-			saberMaterial.diffuseColor = new Color3(0, 0.5, 1);
-			saberMaterial.emissiveColor = new Color3(0, 0.2, 0.5);
-			saber.material = saberMaterial;
-
-			// Store saber reference
-			sabers[controller.uniqueId] = {
-				controller: controller,
-				saber: saber,
-				material: saberMaterial,
-			};
-
-			// Update saber position each frame
-			controller.onMotionControllerInitObservable.add(
-				(motionController) => {
-					console.log(
-						'Motion controller initialized:',
-						motionController.handness,
-					);
-
-					// Set color based on handedness
-					if (motionController.handness === 'left') {
-						saberMaterial.diffuseColor = new Color3(0, 0.5, 1); // Blue
-						saberMaterial.emissiveColor = new Color3(0, 0.2, 0.5);
-					} else if (motionController.handness === 'right') {
-						saberMaterial.diffuseColor = new Color3(1, 0.2, 0); // Red
-						saberMaterial.emissiveColor = new Color3(0.5, 0.1, 0);
-					}
-				},
-			);
-		});
-
-		xrHelper.input.onControllerRemovedObservable.add((controller) => {
-			console.log('Controller disconnected:', controller.uniqueId);
-
-			// Clean up saber
-			if (sabers[controller.uniqueId]) {
-				sabers[controller.uniqueId].saber.dispose();
-				delete sabers[controller.uniqueId];
+			// Set color based on handedness
+			if (motionController.handness === 'left') {
+				saberMaterial.diffuseColor = new Color3(0, 0.5, 1); // Blue
+				saberMaterial.emissiveColor = new Color3(0, 0.2, 0.5);
+			} else if (motionController.handness === 'right') {
+				saberMaterial.diffuseColor = new Color3(1, 0.2, 0); // Red
+				saberMaterial.emissiveColor = new Color3(0.5, 0.1, 0);
 			}
 		});
-	}
+	});
+
+	xr.input.onControllerRemovedObservable.add((controller) => {
+		console.log('Controller disconnected:', controller.uniqueId);
+
+		// Clean up saber
+		if (sabers[controller.uniqueId]) {
+			sabers[controller.uniqueId].saber.dispose();
+			delete sabers[controller.uniqueId];
+		}
+	});
 
 	// Update saber positions every frame
 	scene.registerBeforeRender(() => {
@@ -240,6 +218,30 @@ async function init() {
 			}
 		});
 	});
+}
+
+async function init() {
+	const canvas = document.getElementById('renderCanvas');
+	// noinspection JSCheckFunctionSignatures
+	const engine = new Engine(canvas, true);
+	const scene = new Scene(engine);
+
+	setupScene(scene);
+
+	const desktopCamera = setupDesktopCamera(scene);
+
+	// noinspection JSUnresolvedReference
+	const xr = await scene.createDefaultXRExperienceAsync({
+		disableTeleportation: true,
+	});
+
+	xr.baseExperience.onStateChangedObservable.add((state) => {
+		if (state === WebXRState.ENTERING_XR) {
+			scene.removeCamera(desktopCamera);
+		}
+	});
+
+	setupSabers(scene, xr);
 
 	engine.runRenderLoop(() => scene.render());
 	window.addEventListener('resize', () => engine.resize());
