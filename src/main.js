@@ -32,13 +32,17 @@ function setupWASDControls(camera) {
     camera.keysDownwardSpeed = 0.5;
 }
 
-function setupCamera(scene, canvas) {
+function setupCamera(scene) {
     const camera = new UniversalCamera('camera1', new Vector3(0, 5, -10), scene);
     camera.setTarget(Vector3.Zero());
-    camera.attachControl(canvas, true);
     camera.speed = 0.5;
     camera.angularSensibility = 5000;
     setupWASDControls(camera);
+    const engine = scene.getEngine();
+    // engine.getRenderingCanvas().addEventListener('click', () => {
+    //     engine.enterPointerlock();
+    // });
+    camera.attachControl();
     return camera;
 }
 
@@ -47,11 +51,7 @@ async function init() {
     const engine = new Engine(canvas, true);
     const scene = new Scene(engine);
 
-    setupCamera(scene, canvas);
-
-    // canvas.addEventListener('click', () => {
-    //     engine.enterPointerlock();
-    // });
+    setupCamera(scene);
 
     const light = new HemisphericLight('light', Vector3.Up(), scene);
     light.intensity = 0.8;
