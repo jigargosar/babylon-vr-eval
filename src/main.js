@@ -52,8 +52,8 @@ function setupDesktopCamera(scene) {
 }
 
 function setupScene(scene) {
-	const light = new HemisphericLight('light', Vector3.Up(), scene);
-	light.intensity = 0.8;
+	// const light = new HemisphericLight('light', Vector3.Up(), scene);
+	// light.intensity = 0.8;
 
 	// Create ground plane
 	// noinspection JSUnusedLocalSymbols
@@ -67,7 +67,8 @@ function setupScene(scene) {
 	const redBox = MeshBuilder.CreateBox('redBox', { size: 1 }, scene);
 	redBox.position = new Vector3(3, 0.5, 2);
 	const redMaterial = new StandardMaterial('redMaterial', scene);
-	redMaterial.diffuseColor = new Color3(1, 0, 0);
+	redMaterial.diffuseColor = new Color3(0, 0, 0);
+	redMaterial.emissiveColor = new Color3(1.5, 0, 0);
 	redBox.material = redMaterial;
 
 	const blueBox = MeshBuilder.CreateBox(
@@ -77,7 +78,8 @@ function setupScene(scene) {
 	);
 	blueBox.position = new Vector3(-4, 1, 1);
 	const blueMaterial = new StandardMaterial('blueMaterial', scene);
-	blueMaterial.diffuseColor = new Color3(0, 0, 1);
+	blueMaterial.diffuseColor = new Color3(0, 0, 0);
+	blueMaterial.emissiveColor = new Color3(0, 0.5, 1.5);
 	blueBox.material = blueMaterial;
 
 	const greenSphere = MeshBuilder.CreateSphere(
@@ -87,7 +89,8 @@ function setupScene(scene) {
 	);
 	greenSphere.position = new Vector3(0, 0.75, 5);
 	const greenMaterial = new StandardMaterial('greenMaterial', scene);
-	greenMaterial.diffuseColor = new Color3(0, 1, 0);
+	greenMaterial.diffuseColor = new Color3(0, 0, 0);
+	greenMaterial.emissiveColor = new Color3(0, 1.5, 0.5);
 	greenSphere.material = greenMaterial;
 
 	const yellowCylinder = MeshBuilder.CreateCylinder(
@@ -97,7 +100,8 @@ function setupScene(scene) {
 	);
 	yellowCylinder.position = new Vector3(-2, 1.5, -3);
 	const yellowMaterial = new StandardMaterial('yellowMaterial', scene);
-	yellowMaterial.diffuseColor = new Color3(1, 1, 0);
+	yellowMaterial.diffuseColor = new Color3(0, 0, 0);
+	yellowMaterial.emissiveColor = new Color3(1.5, 1.5, 0);
 	yellowCylinder.material = yellowMaterial;
 
 	// Create some walls for spatial reference
@@ -108,7 +112,8 @@ function setupScene(scene) {
 	);
 	wall1.position = new Vector3(0, 1.5, 8);
 	const grayMaterial = new StandardMaterial('grayMaterial', scene);
-	grayMaterial.diffuseColor = new Color3(0.8, 0.8, 0.8);
+	grayMaterial.diffuseColor = new Color3(0, 0, 0);
+	grayMaterial.emissiveColor = new Color3(0.8, 0.8, 1.2);
 	wall1.material = grayMaterial;
 
 	const wall2 = MeshBuilder.CreateBox(
@@ -164,15 +169,15 @@ function setupSabers(scene, xr) {
 	// Create materials
 	const createBlueMaterial = (scene) => {
 		const material = new StandardMaterial('blueSaberMaterial', scene);
-		material.diffuseColor = new Color3(0, 0.5, 1);
-		material.emissiveColor = new Color3(0, 0.2, 0.5);
+		material.diffuseColor = new Color3(0, 0, 0);
+		material.emissiveColor = new Color3(0, 0.8, 1.5);
 		return material;
 	};
 
 	const createRedMaterial = (scene) => {
 		const material = new StandardMaterial('redSaberMaterial', scene);
-		material.diffuseColor = new Color3(1, 0.2, 0);
-		material.emissiveColor = new Color3(0.5, 0.1, 0);
+		material.diffuseColor = new Color3(0, 0, 0);
+		material.emissiveColor = new Color3(1.5, 0.3, 0);
 		return material;
 	};
 
