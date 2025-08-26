@@ -1,2 +1,4 @@
+- Research BJS playground WebXR examples to fix node material build errors
+- Implement visual enhancements (PBR materials, lighting, shadows, antialiasing)
 - try aframe
 - meta button rotation bug at large angles both looking up and down
