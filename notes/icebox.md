@@ -1,0 +1,2 @@
+- try aframe
+- meta button rotation bug at large angles both looking up and down
