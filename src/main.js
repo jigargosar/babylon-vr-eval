@@ -55,6 +55,9 @@ function setupScene(scene) {
 	// const light = new HemisphericLight('light', Vector3.Up(), scene);
 	// light.intensity = 0.8;
 
+    const ambientLight = new HemisphericLight('ambientLight', Vector3.Up(), scene);
+    	ambientLight.intensity = 0.1;
+
 	// Create ground plane
 	// noinspection JSUnusedLocalSymbols
 	const ground = MeshBuilder.CreateGround(
