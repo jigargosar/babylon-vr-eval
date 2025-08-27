@@ -11,6 +11,7 @@ import '@babylonjs/core/Helpers/sceneHelpers';
 import '@babylonjs/loaders';
 import { WebXRState } from '@babylonjs/core';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
+import { GlowLayer } from '@babylonjs/core/Layers/glowLayer';
 
 function setupDesktopCamera(scene) {
 	const camera = new UniversalCamera(
@@ -304,6 +305,9 @@ async function init() {
 
 
 function setupSabers(scene, xr) {
+	// Create glow layer for saber effects
+	const glowLayer = new GlowLayer("glowLayer", scene);
+	glowLayer.intensity = 0.4;
 	// Helper function to create saber with all properties
 	const createSaber = (name, material, scene) => {
 		const mesh = MeshBuilder.CreateCylinder(name, { height: 1.5, diameter: 0.05 }, scene);
@@ -316,14 +320,14 @@ function setupSabers(scene, xr) {
 	const createBlueMaterial = (scene) => {
 		const material = new StandardMaterial('blueSaberMaterial', scene);
 		material.diffuseColor = new Color3(0, 0, 0);
-		material.emissiveColor = new Color3(0, 0.8, 1.5);
+		material.emissiveColor = new Color3(0, 1.0, 1.8); // Pure cyan for glow
 		return material;
 	};
 
 	const createRedMaterial = (scene) => {
 		const material = new StandardMaterial('redSaberMaterial', scene);
 		material.diffuseColor = new Color3(0, 0, 0);
-		material.emissiveColor = new Color3(1.5, 0.3, 0);
+		material.emissiveColor = new Color3(1.8, 0, 0); // Pure red for glow
 		return material;
 	};
 
@@ -338,6 +342,10 @@ function setupSabers(scene, xr) {
 			controller: null
 		}
 	};
+	
+	// Add sabers to glow layer for selective glow effect
+	glowLayer.addIncludedOnlyMesh(sabers.left.mesh);
+	glowLayer.addIncludedOnlyMesh(sabers.right.mesh);
 
 	// Controller connection logic
 	xr.input.onControllerAddedObservable.add((controller) => {
