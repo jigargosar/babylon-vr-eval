@@ -3,3 +3,4 @@
 - try aframe
 - meta button rotation bug at large angles both looking up and down
 - fruit ninja style slicing
+- Create flat neon outline (thick-stroked rounded rect from top view) instead of floating tube
