@@ -53,7 +53,7 @@ function setupDesktopCamera(scene) {
 	}
 }
 
-function setupScene(scene) {
+function setupScene(scene, glowLayer) {
 	// const light = new HemisphericLight('light', Vector3.Up(), scene);
 	// light.intensity = 0.8;
 
@@ -97,6 +97,11 @@ function setupScene(scene) {
 	greenMaterial.diffuseColor = new Color3(0, 0, 0);
 	greenMaterial.emissiveColor = new Color3(0, 1.5, 0.5);
 	greenSphere.material = greenMaterial;
+	
+	// Add green sphere to glow layer
+	if (glowLayer) {
+		glowLayer.addIncludedOnlyMesh(greenSphere);
+	}
 
 	const yellowCylinder = MeshBuilder.CreateCylinder(
 		'yellowCylinder',
@@ -282,7 +287,11 @@ async function init() {
 	const engine = new Engine(canvas, true);
 	const scene = new Scene(engine);
 
-	setupScene(scene);
+	// Create glow layer for scene effects
+	const glowLayer = new GlowLayer("glowLayer", scene);
+	glowLayer.intensity = 0.4;
+	
+	setupScene(scene, glowLayer);
 
 	const desktopCamera = setupDesktopCamera(scene);
 
@@ -297,17 +306,14 @@ async function init() {
 		}
 	});
 
-	setupSabers(scene, xr);
+	setupSabers(scene, xr, glowLayer);
 
 	engine.runRenderLoop(() => scene.render());
 	window.addEventListener('resize', () => engine.resize());
 }
 
 
-function setupSabers(scene, xr) {
-	// Create glow layer for saber effects
-	const glowLayer = new GlowLayer("glowLayer", scene);
-	glowLayer.intensity = 0.4;
+function setupSabers(scene, xr, glowLayer) {
 	// Helper function to create saber with all properties
 	const createSaber = (name, material, scene) => {
 		const mesh = MeshBuilder.CreateCylinder(name, { height: 1.5, diameter: 0.05 }, scene);
