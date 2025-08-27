@@ -137,9 +137,9 @@ function setupScene(scene) {
 }
 
 function setupNeonFloor(scene) {
-	// Create 8x4.5 meter rounded rectangle path for play area boundary
-	const width = 8;
-	const depth = 4.5;
+	// Create 4x2.5 meter rounded rectangle path for play area boundary
+	const width = 4;
+	const depth = 2.5;
 	const cornerRadius = 0.3;
 	const height = 0.1; // Float above ground
 	
