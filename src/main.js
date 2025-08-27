@@ -212,7 +212,7 @@ function setupSabers(scene, xr) {
 		console.log('Controller disconnected:', controller.uniqueId);
 
 		// Find and disable the saber for this controller
-		['left', 'right'].forEach(hand => {
+		Object.keys(sabers).forEach(hand => {
 			if (sabers[hand].controller === controller) {
 				sabers[hand].mesh.setEnabled(false);
 				sabers[hand].controller = null;
@@ -222,7 +222,7 @@ function setupSabers(scene, xr) {
 
 	// Update saber positions every frame
 	scene.registerBeforeRender(() => {
-		['left', 'right'].forEach(hand => {
+		Object.keys(sabers).forEach(hand => {
 			const saber = sabers[hand];
 			if (saber.controller?.grip) {
 				// Position saber at controller grip position
