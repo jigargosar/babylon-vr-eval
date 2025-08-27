@@ -220,26 +220,31 @@ function setupSabers(scene, xr) {
 		});
 	});
 
-	// Update saber positions every frame
+
+    // Update saber positions every frame
 	scene.registerBeforeRender(() => {
 		Object.keys(sabers).forEach(hand => {
 			const saber = sabers[hand];
 			if (saber.controller?.grip) {
-				// Position saber at controller grip position
-				saber.mesh.position.copyFrom(saber.controller.grip.position);
-
-				// Rotate saber to point forward like a lightsaber
-				const baseRotation = saber.controller.grip.rotationQuaternion.clone();
-				const forwardRotation = Quaternion.FromEulerAngles(Math.PI / 2, 0, 0);
-				saber.mesh.rotationQuaternion = baseRotation.multiply(forwardRotation);
-
-				// Offset saber forward from controller grip
-				const forward = new Vector3(0, 0.75, 0);
-				forward.rotateByQuaternionToRef(saber.mesh.rotationQuaternion, forward);
-				saber.mesh.position.addInPlace(forward);
-			}
+				positionSaber(saber);
+            }
 		});
 	});
+
+    function positionSaber(saber) {
+        saber.mesh.position.copyFrom(saber.controller.grip.position);
+
+        // Rotate saber to point forward like a lightsaber
+        const baseRotation = saber.controller.grip.rotationQuaternion.clone();
+        const forwardRotation = Quaternion.FromEulerAngles(Math.PI / 2, 0, 0);
+        saber.mesh.rotationQuaternion = baseRotation.multiply(forwardRotation);
+
+        // Offset saber forward from controller grip
+        const forward = new Vector3(0, 0.75, 0);
+        forward.rotateByQuaternionToRef(saber.mesh.rotationQuaternion, forward);
+        saber.mesh.position.addInPlace(forward);
+    }
+
 }
 
 document.addEventListener('DOMContentLoaded', init);
