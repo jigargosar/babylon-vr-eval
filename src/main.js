@@ -133,6 +133,7 @@ function setupScene(scene) {
 	});
 
 	setupNeonFloor(scene);
+	setupFootprints(scene);
 }
 
 function setupNeonFloor(scene) {
@@ -183,6 +184,71 @@ function setupNeonFloor(scene) {
 	neonMaterial.diffuseColor = new Color3(0, 0, 0);
 	neonMaterial.emissiveColor = new Color3(0, 0.8, 2.0);
 	tube.material = neonMaterial;
+}
+
+function setupFootprints(scene) {
+	// Create foot-shaped outlines at center for starting position
+	const footLength = 0.28;
+	const footWidth = 0.12;
+	const footSeparation = 0.25; // Distance between feet (shoulder width)
+	const height = 0.01; // Just above ground
+	
+	// Create left and right foot shapes
+	const createFootprint = (name, xOffset) => {
+		// Create realistic foot shape using multiple components
+		const footGroup = [];
+		
+		// Heel (circular back part)
+		const heel = MeshBuilder.CreateDisc(name + '_heel', {
+			radius: footWidth * 0.4,
+			tessellation: 12
+		}, scene);
+		heel.position.x = xOffset;
+		heel.position.y = height;
+		heel.position.z = -footLength * 0.3;
+		heel.rotation.x = Math.PI / 2;
+		
+		// Arch (narrower middle section)
+		const arch = MeshBuilder.CreateDisc(name + '_arch', {
+			radius: footWidth * 0.5,
+			tessellation: 12
+		}, scene);
+		arch.position.x = xOffset;
+		arch.position.y = height;
+		arch.position.z = 0;
+		arch.rotation.x = Math.PI / 2;
+		arch.scaling.x = 0.6; // Narrower arch
+		arch.scaling.z = 0.8;
+		
+		// Toe area (wider front part)
+		const toe = MeshBuilder.CreateDisc(name + '_toe', {
+			radius: footWidth * 0.45,
+			tessellation: 12
+		}, scene);
+		toe.position.x = xOffset;
+		toe.position.y = height;
+		toe.position.z = footLength * 0.25;
+		toe.rotation.x = Math.PI / 2;
+		toe.scaling.x = 1.1; // Wider toe area
+		toe.scaling.z = 0.7;
+		
+		// Create white material
+		const whiteMaterial = new StandardMaterial(name + 'Material', scene);
+		whiteMaterial.diffuseColor = new Color3(1, 1, 1);
+		whiteMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+		
+		// Apply material to all parts
+		heel.material = whiteMaterial;
+		arch.material = whiteMaterial;
+		toe.material = whiteMaterial;
+		
+		// Keep as separate meshes (simpler approach)
+		return { heel, arch, toe };
+	};
+	
+	// Create left and right footprints
+	createFootprint('leftFootprint', -footSeparation/2);
+	createFootprint('rightFootprint', footSeparation/2);
 }
 
 async function init() {
