@@ -189,7 +189,7 @@ function setupNeonFloor(scene) {
 	// Create neon tube
 	const tube = MeshBuilder.CreateTube('neonFloor', {
 		path: path,
-		radius: 0.05,
+		radius: 0.02,
 		tessellation: 8,
 		cap: 1
 	}, scene);
