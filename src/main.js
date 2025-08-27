@@ -133,16 +133,23 @@ function setupScene(scene) {
 		createGround: false,
 	});
 
-	const floorGroup = new TransformNode("floorGroup", scene);
-	floorGroup.position.y = 0; // Single control point for floor elements
-	
-	setupNeonFloor(scene, floorGroup);
-	const footprintsGroup = setupFootprints(scene);
-	footprintsGroup.parent = floorGroup;
-	footprintsGroup.position.y = 0.01; // Slightly above tube level
+	const playAreaGroup = setupPlayArea(scene);
+	playAreaGroup.position.y = 0; // Control play area height
 }
 
-function setupNeonFloor(scene, floorGroup) {
+function setupPlayArea(scene) {
+	// Create play area group for unified control
+	const playAreaGroup = new TransformNode("playAreaGroup", scene);
+	
+	setupNeonFloor(scene, playAreaGroup);
+	const footprintsGroup = setupFootprints(scene);
+	footprintsGroup.parent = playAreaGroup;
+	footprintsGroup.position.y = 0.01; // Slightly above tube level
+	
+	return playAreaGroup;
+}
+
+function setupNeonFloor(scene, playAreaGroup) {
 	// Create 4x2.5 meter rounded rectangle path for play area boundary
 	const width = 4;
 	const depth = 2.5;
@@ -191,9 +198,9 @@ function setupNeonFloor(scene, floorGroup) {
 	neonMaterial.emissiveColor = new Color3(0, 0.8, 2.0);
 	tube.material = neonMaterial;
 	
-	// Parent to floor group
-	tube.parent = floorGroup;
-	tube.position.y = 0; // At floor group level
+	// Parent to play area group
+	tube.parent = playAreaGroup;
+	tube.position.y = 0; // At play area group level
 }
 
 function setupFootprints(scene) {
