@@ -10,6 +10,7 @@ import { Quaternion } from '@babylonjs/core/Maths/math.vector';
 import '@babylonjs/core/Helpers/sceneHelpers';
 import '@babylonjs/loaders';
 import { WebXRState } from '@babylonjs/core';
+import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 
 function setupDesktopCamera(scene) {
 	const camera = new UniversalCamera(
@@ -133,7 +134,8 @@ function setupScene(scene) {
 	});
 
 	setupNeonFloor(scene);
-	setupFootprints(scene);
+	const footprintsGroup = setupFootprints(scene);
+	footprintsGroup.position.y = 0.01
 }
 
 function setupNeonFloor(scene) {
@@ -187,6 +189,9 @@ function setupNeonFloor(scene) {
 }
 
 function setupFootprints(scene) {
+	// Create footprints group for easy positioning control
+	const footprintsGroup = new TransformNode("footprintsGroup", scene);
+	
 	// Create foot-shaped outlines at center for starting position
 	const footLength = 0.28;
 	const footWidth = 0.12;
@@ -207,6 +212,7 @@ function setupFootprints(scene) {
 		heel.position.y = height;
 		heel.position.z = -footLength * 0.3;
 		heel.rotation.x = Math.PI / 2;
+		heel.parent = footprintsGroup; // Parent to group
 		
 		// Arch (narrower middle section)
 		const arch = MeshBuilder.CreateDisc(name + '_arch', {
@@ -219,6 +225,7 @@ function setupFootprints(scene) {
 		arch.rotation.x = Math.PI / 2;
 		arch.scaling.x = 0.6; // Narrower arch
 		arch.scaling.z = 0.8;
+		arch.parent = footprintsGroup; // Parent to group
 		
 		// Toe area (wider front part)
 		const toe = MeshBuilder.CreateDisc(name + '_toe', {
@@ -231,6 +238,7 @@ function setupFootprints(scene) {
 		toe.rotation.x = Math.PI / 2;
 		toe.scaling.x = 1.1; // Wider toe area
 		toe.scaling.z = 0.7;
+		toe.parent = footprintsGroup; // Parent to group
 		
 		// Create white material
 		const whiteMaterial = new StandardMaterial(name + 'Material', scene);
@@ -249,6 +257,8 @@ function setupFootprints(scene) {
 	// Create left and right footprints
 	createFootprint('leftFootprint', -footSeparation/2);
 	createFootprint('rightFootprint', footSeparation/2);
+	
+	return footprintsGroup;
 }
 
 async function init() {
