@@ -131,7 +131,60 @@ function setupScene(scene) {
 		skyboxSize: 50,
 		createGround: false,
 	});
+
+	setupNeonFloor(scene);
 }
+
+function setupNeonFloor(scene) {
+	// Create 8x4.5 meter rounded rectangle path for play area boundary
+	const width = 8;
+	const depth = 4.5;
+	const cornerRadius = 0.3;
+	const height = 0.1; // Float above ground
+	
+	// Calculate path points for rounded rectangle
+	const path = [];
+	const segments = 16; // Points per corner arc
+	
+	// Helper function to add arc points
+	const addArc = (centerX, centerZ, startAngle, endAngle) => {
+		for (let i = 0; i <= segments; i++) {
+			const angle = startAngle + (endAngle - startAngle) * (i / segments);
+			path.push(new Vector3(
+				centerX + Math.cos(angle) * cornerRadius,
+				height,
+				centerZ + Math.sin(angle) * cornerRadius
+			));
+		}
+	};
+	
+	// Build rounded rectangle path (clockwise from top-right)
+	// Top-right corner
+	addArc(width/2 - cornerRadius, depth/2 - cornerRadius, 0, Math.PI/2);
+	// Top-left corner  
+	addArc(-width/2 + cornerRadius, depth/2 - cornerRadius, Math.PI/2, Math.PI);
+	// Bottom-left corner
+	addArc(-width/2 + cornerRadius, -depth/2 + cornerRadius, Math.PI, 3*Math.PI/2);
+	// Bottom-right corner
+	addArc(width/2 - cornerRadius, -depth/2 + cornerRadius, 3*Math.PI/2, 2*Math.PI);
+	// Close the path
+	path.push(path[0]);
+	
+	// Create neon tube
+	const tube = MeshBuilder.CreateTube('neonFloor', {
+		path: path,
+		radius: 0.05,
+		tessellation: 8,
+		cap: 1
+	}, scene);
+	
+	// Create neon material
+	const neonMaterial = new StandardMaterial('neonFloorMaterial', scene);
+	neonMaterial.diffuseColor = new Color3(0, 0, 0);
+	neonMaterial.emissiveColor = new Color3(0, 0.8, 2.0);
+	tube.material = neonMaterial;
+}
+
 async function init() {
 	const canvas = document.getElementById('renderCanvas');
 	// noinspection JSCheckFunctionSignatures
