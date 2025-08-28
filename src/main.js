@@ -94,7 +94,7 @@ function setupScene(scene, glowLayer) {
 		{ diameter: 1.5 },
 		scene,
 	);
-	greenSphere.position = new Vector3(0, 0.75, 5);
+	greenSphere.position = new Vector3(0, 3, 5);
 	const greenMaterial = new StandardMaterial('greenMaterial', scene);
 	greenMaterial.diffuseColor = new Color3(0, 0, 0);
 	greenMaterial.emissiveColor = new Color3(0, 1.5, 0.5);
@@ -117,24 +117,25 @@ function setupScene(scene, glowLayer) {
 	yellowCylinder.material = yellowMaterial;
 
 	// Create some walls for spatial reference
-	const wall1 = MeshBuilder.CreateBox(
-		'wall1',
-		{ width: 10, height: 3, depth: 0.2 },
-		scene,
-	);
-	wall1.position = new Vector3(0, 1.5, 8);
 	const grayMaterial = new StandardMaterial('grayMaterial', scene);
 	grayMaterial.diffuseColor = new Color3(0, 0, 0);
 	grayMaterial.emissiveColor = new Color3(0.8, 0.8, 1.2);
-	wall1.material = grayMaterial;
+	
+	// const wall1 = MeshBuilder.CreateBox(
+	//	'wall1',
+	//	{ width: 10, height: 3, depth: 0.2 },
+	//	scene,
+	// );
+	// wall1.position = new Vector3(0, 1.5, 8);
+	// wall1.material = grayMaterial;
 
-	const wall2 = MeshBuilder.CreateBox(
-		'wall2',
-		{ width: 0.2, height: 3, depth: 10 },
-		scene,
-	);
-	wall2.position = new Vector3(8, 1.5, 0);
-	wall2.material = grayMaterial;
+	// const wall2 = MeshBuilder.CreateBox(
+	//	'wall2',
+	//	{ width: 0.2, height: 3, depth: 10 },
+	//	scene,
+	// );
+	// wall2.position = new Vector3(8, 1.5, 0);
+	// wall2.material = grayMaterial;
 	scene.createDefaultEnvironment({
 		createSkybox: true,
 		skyboxSize: 50,
@@ -296,14 +297,22 @@ async function init() {
 	setupScene(scene, glowLayer);
 	
 	// Create minimal particle test
-	const testParticles = new ParticleSystem("test", 200, scene);
+	const testParticles = new ParticleSystem("test", 2000, scene);
 	testParticles.particleTexture = new Texture("https://playground.babylonjs.com/textures/flare.png", scene);
-	testParticles.emitter = new Vector3(0, 1, 3);
-	testParticles.color1 = new Color4(1, 1, 0, 1);
-	testParticles.color2 = new Color4(1, 0.5, 0, 1);
-	testParticles.minSize = 0.1;
-	testParticles.maxSize = 0.1;
-	testParticles.emitRate = 50;
+	testParticles.emitter = new Vector3(0, 1.7, 1.5);
+	testParticles.color1 = new Color4(3, 3, 3, 1);
+	testParticles.color2 = new Color4(3, 3, 3, 1);
+	testParticles.minSize = 0.005;
+	testParticles.maxSize = 0.005;
+	testParticles.minEmitBox = new Vector3(-0.02, -0.02, -0.02);     
+	testParticles.maxEmitBox = new Vector3(0.02, 0.02, 0.02);
+	testParticles.emitRate = 1000;
+	testParticles.direction1 = new Vector3(-1, -1, -1);  // One corner of sphere
+	testParticles.direction2 = new Vector3(1, 1, 1);    // Opposite corner for full sphere
+	testParticles.minEmitPower = 1.5;
+	testParticles.maxEmitPower = 3.0;
+	testParticles.minLifeTime = 0.1;
+	testParticles.maxLifeTime = 0.2;
 	testParticles.start();
 
 	const desktopCamera = setupDesktopCamera(scene);
