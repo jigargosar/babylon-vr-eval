@@ -363,7 +363,6 @@ async function init() {
 	);
 	testParticles.start();
 
-
 	const desktopCamera = setupDesktopCamera(scene);
 
 	// noinspection JSUnresolvedReference
@@ -389,11 +388,13 @@ async function init() {
 }
 
 function setupSabers(scene, xr, glowLayer, collisionSparks) {
+	const SABER_DIAMETER = 0.05;
+
 	// Helper function to create saber with all properties
 	const createSaber = (name, material, scene) => {
 		const mesh = MeshBuilder.CreateCylinder(
 			name,
-			{ height: 1.5, diameter: 0.05 },
+			{ height: 1.5, diameter: SABER_DIAMETER },
 			scene,
 		);
 		mesh.material = material;
@@ -531,7 +532,8 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 			sabers.left.mesh.position,
 			sabers.right.mesh.position,
 		);
-		const collisionThreshold = 0.1; // Combined radius of both sabers
+		// noinspection UnnecessaryLocalVariableJS
+		const collisionThreshold = SABER_DIAMETER; // Surface-to-surface collision
 
 		if (distance < collisionThreshold) {
 			lastCollisionTime = currentTime;
@@ -540,6 +542,7 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 			indicatorMaterial.emissiveColor = new Color3(0, 1.5, 0);
 
 			// Trigger collision sparks
+			// noinspection UnnecessaryLocalVariableJS
 			const collisionPoint = Vector3.Center(
 				sabers.left.mesh.position,
 				sabers.right.mesh.position,
