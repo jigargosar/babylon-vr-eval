@@ -296,44 +296,32 @@ async function init() {
 	
 	setupScene(scene, glowLayer);
 	
-	// Create minimal particle test
-	const testParticles = new ParticleSystem("test", 2000, scene);
-	testParticles.particleTexture = new Texture("https://playground.babylonjs.com/textures/flare.png", scene);
-	testParticles.emitter = new Vector3(0, 1.7, 1.5);
-	testParticles.color1 = new Color4(3, 3, 3, 1);
-	testParticles.color2 = new Color4(3, 3, 3, 1);
-	testParticles.minSize = 0.005;
-	testParticles.maxSize = 0.005;
-	testParticles.minEmitBox = new Vector3(-0.02, -0.02, -0.02);     
-	testParticles.maxEmitBox = new Vector3(0.02, 0.02, 0.02);
-	testParticles.emitRate = 1000;
-	testParticles.direction1 = new Vector3(-1, -1, -1);  // One corner of sphere
-	testParticles.direction2 = new Vector3(1, 1, 1);    // Opposite corner for full sphere
-	testParticles.minEmitPower = 1.5;
-	testParticles.maxEmitPower = 3.0;
-	testParticles.minLifeTime = 0.1;
-	testParticles.maxLifeTime = 0.2;
+	// Create minimal particle test using shared function
+	const testParticles = createSparkSystem("test", scene, new Vector3(0, 1.7, 1.5));
 	testParticles.start();
 
+function createSparkSystem(name, scene, emitterPosition) {
+	const particleSystem = new ParticleSystem(name, 2000, scene);
+	particleSystem.particleTexture = new Texture("https://playground.babylonjs.com/textures/flare.png", scene);
+	particleSystem.emitter = emitterPosition;
+	particleSystem.color1 = new Color4(3, 3, 3, 1);
+	particleSystem.color2 = new Color4(3, 3, 3, 1);
+	particleSystem.minSize = 0.008;
+	particleSystem.maxSize = 0.008;
+	particleSystem.minEmitBox = new Vector3(-0.02, -0.02, -0.02);
+	particleSystem.maxEmitBox = new Vector3(0.02, 0.02, 0.02);
+	particleSystem.emitRate = 1000;
+	particleSystem.direction1 = new Vector3(-1, -1, -1);
+	particleSystem.direction2 = new Vector3(1, 1, 1);
+	particleSystem.minEmitPower = 3.0;
+	particleSystem.maxEmitPower = 3.0;
+	particleSystem.minLifeTime = 0.15;
+	particleSystem.maxLifeTime = 0.15;
+	return particleSystem;
+}
+
 function setupCollisionSparks(scene) {
-	// Create particle system for collision sparks (same settings as test)
-	const collisionParticles = new ParticleSystem("collisionSparks", 2000, scene);
-	collisionParticles.particleTexture = new Texture("https://playground.babylonjs.com/textures/flare.png", scene);
-	collisionParticles.emitter = new Vector3(0, 0, 0); // Will be set dynamically
-	collisionParticles.color1 = new Color4(3, 3, 3, 1);
-	collisionParticles.color2 = new Color4(3, 3, 3, 1);
-	collisionParticles.minSize = 0.005;
-	collisionParticles.maxSize = 0.005;
-	collisionParticles.minEmitBox = new Vector3(-0.02, -0.02, -0.02);
-	collisionParticles.maxEmitBox = new Vector3(0.02, 0.02, 0.02);
-	collisionParticles.emitRate = 1000;
-	collisionParticles.direction1 = new Vector3(-1, -1, -1);
-	collisionParticles.direction2 = new Vector3(1, 1, 1);
-	collisionParticles.minEmitPower = 1.5;
-	collisionParticles.maxEmitPower = 3.0;
-	collisionParticles.minLifeTime = 0.1;
-	collisionParticles.maxLifeTime = 0.2;
-	return collisionParticles;
+	return createSparkSystem("collisionSparks", scene, new Vector3(0, 0, 0));
 }
 
 	const desktopCamera = setupDesktopCamera(scene);
