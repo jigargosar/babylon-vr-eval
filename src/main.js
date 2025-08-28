@@ -321,6 +321,26 @@ function setupSabers(scene, xr, glowLayer) {
 		mesh.setEnabled(false);
 		return mesh;
 	};
+	
+	// Collision tracking state
+	let lastCollisionTime = 0;
+	const collisionCooldown = 200; // ms to prevent spam
+	
+	// Create collision indicator sphere
+	const collisionIndicator = MeshBuilder.CreateSphere('collisionIndicator', { diameter: 0.2 }, scene);
+	collisionIndicator.position = new Vector3(1, 0.75, 5); // Near green sphere in front
+	const indicatorMaterial = new StandardMaterial('collisionIndicatorMaterial', scene);
+	indicatorMaterial.diffuseColor = new Color3(0, 0, 0);
+	indicatorMaterial.emissiveColor = new Color3(1, 0, 0); // Red when no collision
+	collisionIndicator.material = indicatorMaterial;
+	
+	// Create error indicator cube
+	const errorIndicator = MeshBuilder.CreateBox('errorIndicator', { size: 0.2 }, scene);
+	errorIndicator.position = new Vector3(-1, 0.75, 5); // Left side of green sphere
+	const errorMaterial = new StandardMaterial('errorIndicatorMaterial', scene);
+	errorMaterial.diffuseColor = new Color3(0, 0, 0);
+	errorMaterial.emissiveColor = new Color3(0, 1.5, 0); // Green when no errors
+	errorIndicator.material = errorMaterial;
 
 	// Create materials
 	const createBlueMaterial = (scene) => {
@@ -381,14 +401,19 @@ function setupSabers(scene, xr, glowLayer) {
 	});
 
 
-    // Update saber positions every frame
-	scene.registerBeforeRender(() => {
+    // Update saber positions and check collisions every frame
+	scene.registerBeforeRender(async () => {
 		Object.keys(sabers).forEach(hand => {
 			const saber = sabers[hand];
 			if (saber.controller?.grip) {
 				positionSaber(saber);
-            }
+			}
 		});
+
+		// Check for saber collision
+		if (sabers.left.mesh.isEnabled() && sabers.right.mesh.isEnabled()) {
+			await checkSaberCollision();
+		}
 	});
 
     function positionSaber(saber) {
@@ -404,6 +429,38 @@ function setupSabers(scene, xr, glowLayer) {
         forward.rotateByQuaternionToRef(saber.mesh.rotationQuaternion, forward);
         saber.mesh.position.addInPlace(forward);
     }
+
+	async  function checkSaberCollision() {
+		const currentTime = Date.now();
+		if (currentTime - lastCollisionTime < collisionCooldown) return;
+		
+		// Check if sabers are intersecting using distance
+		const distance = Vector3.Distance(sabers.left.mesh.position, sabers.right.mesh.position);
+		const collisionThreshold = 0.1; // Combined radius of both sabers
+		
+		if (distance < collisionThreshold) {
+			lastCollisionTime = currentTime;
+			
+			// Visual feedback - turn indicator green
+			indicatorMaterial.emissiveColor = new Color3(0, 1.5, 0);
+			
+			// Trigger haptic feedback on both controllers with error handling
+			try {
+				if (sabers.left.controller?.inputSource?.gamepad?.hapticActuators) {
+					await sabers.left.controller.pulse(0.8, 100);
+				}
+				if (sabers.right.controller?.inputSource?.gamepad?.hapticActuators) {
+					await sabers.right.controller.pulse(0.8, 100);
+				}
+			} catch (error) {
+				// Turn error indicator red
+				errorMaterial.emissiveColor = new Color3(1.5, 0, 0);
+			}
+		} else {
+			// Reset indicator to red when no collision
+			indicatorMaterial.emissiveColor = new Color3(1, 0, 0);
+		}
+	}
 
 }
 
