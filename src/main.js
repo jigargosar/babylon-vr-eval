@@ -320,23 +320,23 @@ function setupFootprints(scene) {
 }
 
 function createSparkSystem(name, scene, emitterPosition) {
-	const particleSystem = new ParticleSystem(name, 2000, scene);
+	const particleSystem = new ParticleSystem(name, 5000, scene);
 	particleSystem.particleTexture = new Texture(
 		'https://playground.babylonjs.com/textures/flare.png',
 		scene,
 	);
 	particleSystem.emitter = emitterPosition;
-	particleSystem.color1 = new Color4(3, 3, 3, 1);
-	particleSystem.color2 = new Color4(3, 3, 3, 1);
-	particleSystem.minSize = 0.008;
-	particleSystem.maxSize = 0.008;
-	particleSystem.minEmitBox = new Vector3(-0.02, -0.02, -0.02);
-	particleSystem.maxEmitBox = new Vector3(0.02, 0.02, 0.02);
-	particleSystem.emitRate = 1000;
+	particleSystem.color1 = new Color4(5, 5, 5, 1);
+	particleSystem.color2 = new Color4(5, 5, 5, 1);
+	particleSystem.minSize = 0.004;
+	particleSystem.maxSize = 0.004;
+	particleSystem.minEmitBox = new Vector3(-0.01, -0.01, -0.01);
+	particleSystem.maxEmitBox = new Vector3(0.01, 0.01, 0.01);
+	particleSystem.emitRate = 3000;
 	particleSystem.direction1 = new Vector3(-1, -1, -1);
 	particleSystem.direction2 = new Vector3(1, 1, 1);
-	particleSystem.minEmitPower = 3.0;
-	particleSystem.maxEmitPower = 3.0;
+	particleSystem.minEmitPower = 0.5;
+	particleSystem.maxEmitPower = 0.5;
 	particleSystem.minLifeTime = 0.15;
 	particleSystem.maxLifeTime = 0.15;
 	return particleSystem;
