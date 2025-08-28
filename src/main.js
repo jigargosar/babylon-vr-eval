@@ -630,21 +630,27 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 
 			// Trigger haptic feedback on both controllers with error handling
 			try {
-				if (
-					sabers.left.controller?.inputSource?.gamepad
-						?.vibrationActuator
-				) {
-					await sabers.left.controller.pulse(0.8, 100);
-				}
-				if (
-					sabers.right.controller?.inputSource?.gamepad
-						?.vibrationActuator
-				) {
-					await sabers.right.controller.pulse(0.8, 100);
-				}
+				// if (
+				// 	sabers.left.controller?.inputSource?.gamepad
+				// 		?.vibrationActuator
+				// ) {
+				// 	await sabers.left.controller.pulse(0.8, 100);
+				// }
+				// if (
+				// 	sabers.right.controller?.inputSource?.gamepad
+				// 		?.vibrationActuator
+				// ) {
+				// 	await sabers.right.controller.pulse(0.8, 100);
+				// }
+				// debugger
+				// await sabers.left.controller.pulse(0.8, 100);
+				await sabers.left.controller.motionController.pulse(0.8, 100);
+				await sabers.right.controller.motionController.pulse(0.8, 100);
+
 			} catch (error) {
 				// Turn error indicator red
 				errorMaterial.emissiveColor = new Color3(1.5, 0, 0);
+				console.error(error)
 			}
 		} else {
 			// Reset indicator to red when no collision
