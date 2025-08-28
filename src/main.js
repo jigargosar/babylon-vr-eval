@@ -387,6 +387,42 @@ async function init() {
 	window.addEventListener('resize', () => engine.resize());
 }
 
+function lineSegmentDistance(p1, q1, p2, q2) {
+	// Calculate closest distance between two 3D line segments
+	const d1 = q1.subtract(p1);
+	const d2 = q2.subtract(p2);
+	const r = p1.subtract(p2);
+	
+	const a = Vector3.Dot(d1, d1);
+	const b = Vector3.Dot(d1, d2);
+	const c = Vector3.Dot(d2, d2);
+	const d = Vector3.Dot(d1, r);
+	const e = Vector3.Dot(d2, r);
+	
+	const denom = a * c - b * b;
+	
+	let t1, t2;
+	
+	if (denom < 0.000001) {
+		// Lines are parallel
+		t1 = 0;
+		t2 = (b > c ? d / b : e / c);
+	} else {
+		t1 = (b * e - c * d) / denom;
+		t2 = (a * e - b * d) / denom;
+	}
+	
+	// Clamp to segment bounds [0,1]
+	t1 = Math.max(0, Math.min(1, t1));
+	t2 = Math.max(0, Math.min(1, t2));
+	
+	// Calculate closest points
+	const closest1 = p1.add(d1.scale(t1));
+	const closest2 = p2.add(d2.scale(t2));
+	
+	return Vector3.Distance(closest1, closest2);
+}
+
 function setupSabers(scene, xr, glowLayer, collisionSparks) {
 	const SABER_DIAMETER = 0.05;
 
@@ -527,13 +563,28 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 		const currentTime = Date.now();
 		if (currentTime - lastCollisionTime < collisionCooldown) return;
 
-		// Check if sabers are intersecting using distance
-		const distance = Vector3.Distance(
-			sabers.left.mesh.position,
-			sabers.right.mesh.position,
-		);
-		// noinspection UnnecessaryLocalVariableJS
-		const collisionThreshold = SABER_DIAMETER; // Surface-to-surface collision
+		// Calculate saber endpoints for cylinder-to-cylinder collision
+		const saberHeight = 1.5;
+		const leftSaber = sabers.left.mesh;
+		const rightSaber = sabers.right.mesh;
+
+		// Get direction vector from rotation (sabers point along Y-axis after rotation)
+		const leftDirection = new Vector3(0, 1, 0);
+		leftDirection.rotateByQuaternionToRef(leftSaber.rotationQuaternion, leftDirection);
+		
+		const rightDirection = new Vector3(0, 1, 0);
+		rightDirection.rotateByQuaternionToRef(rightSaber.rotationQuaternion, rightDirection);
+
+		// Calculate endpoints
+		const leftStart = leftSaber.position.subtract(leftDirection.scale(saberHeight / 2));
+		const leftEnd = leftSaber.position.add(leftDirection.scale(saberHeight / 2));
+		
+		const rightStart = rightSaber.position.subtract(rightDirection.scale(saberHeight / 2));
+		const rightEnd = rightSaber.position.add(rightDirection.scale(saberHeight / 2));
+
+		// Calculate closest distance between line segments
+		const distance = lineSegmentDistance(leftStart, leftEnd, rightStart, rightEnd);
+		const collisionThreshold = SABER_DIAMETER; // Combined radii collision
 
 		if (distance < collisionThreshold) {
 			lastCollisionTime = currentTime;
