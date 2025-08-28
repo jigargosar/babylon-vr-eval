@@ -5,13 +5,15 @@ import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
-import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { Quaternion } from '@babylonjs/core/Maths/math.vector';
 import '@babylonjs/core/Helpers/sceneHelpers';
 import '@babylonjs/loaders';
 import { WebXRState } from '@babylonjs/core';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { GlowLayer } from '@babylonjs/core/Layers/glowLayer';
+import { ParticleSystem } from '@babylonjs/core/Particles/particleSystem';
+import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 
 function setupDesktopCamera(scene) {
 	const camera = new UniversalCamera(
@@ -292,6 +294,17 @@ async function init() {
 	glowLayer.intensity = 0.4;
 	
 	setupScene(scene, glowLayer);
+	
+	// Create minimal particle test
+	const testParticles = new ParticleSystem("test", 200, scene);
+	testParticles.particleTexture = new Texture("https://playground.babylonjs.com/textures/flare.png", scene);
+	testParticles.emitter = new Vector3(0, 1, 3);
+	testParticles.color1 = new Color4(1, 1, 0, 1);
+	testParticles.color2 = new Color4(1, 0.5, 0, 1);
+	testParticles.minSize = 0.1;
+	testParticles.maxSize = 0.1;
+	testParticles.emitRate = 50;
+	testParticles.start();
 
 	const desktopCamera = setupDesktopCamera(scene);
 
