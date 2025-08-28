@@ -439,12 +439,12 @@ async function init() {
 	const testParticles = createSparkSystem(
 		'test',
 		scene,
-		new Vector3(0, 1.7, 1.5),
+		new Vector3(0.5, 1.7, 0.8),
 	);
 	testParticles.start();
 
 	// Create custom mesh-based spark test
-	setupCustomSparkTest(scene, glowLayer, new Vector3(-2, 1.7, 1.5));
+	setupCustomSparkTest(scene, glowLayer, new Vector3(-0.5, 1.7, 0.8));
 
 	const desktopCamera = setupDesktopCamera(scene);
 
