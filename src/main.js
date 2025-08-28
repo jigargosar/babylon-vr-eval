@@ -1,12 +1,11 @@
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { Scene } from '@babylonjs/core/scene';
-import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
-import { Quaternion } from '@babylonjs/core/Maths/math.vector';
 import '@babylonjs/core/Helpers/sceneHelpers';
 import '@babylonjs/loaders';
 import { WebXRState } from '@babylonjs/core';
@@ -321,6 +320,29 @@ function setupFootprints(scene) {
 	return footprintsGroup;
 }
 
+function createSparkSystem(name, scene, emitterPosition) {
+	const particleSystem = new ParticleSystem(name, 2000, scene);
+	particleSystem.particleTexture = new Texture(
+		'https://playground.babylonjs.com/textures/flare.png',
+		scene,
+	);
+	particleSystem.emitter = emitterPosition;
+	particleSystem.color1 = new Color4(3, 3, 3, 1);
+	particleSystem.color2 = new Color4(3, 3, 3, 1);
+	particleSystem.minSize = 0.008;
+	particleSystem.maxSize = 0.008;
+	particleSystem.minEmitBox = new Vector3(-0.02, -0.02, -0.02);
+	particleSystem.maxEmitBox = new Vector3(0.02, 0.02, 0.02);
+	particleSystem.emitRate = 1000;
+	particleSystem.direction1 = new Vector3(-1, -1, -1);
+	particleSystem.direction2 = new Vector3(1, 1, 1);
+	particleSystem.minEmitPower = 3.0;
+	particleSystem.maxEmitPower = 3.0;
+	particleSystem.minLifeTime = 0.15;
+	particleSystem.maxLifeTime = 0.15;
+	return particleSystem;
+}
+
 async function init() {
 	const canvas = document.getElementById('renderCanvas');
 	// noinspection JSCheckFunctionSignatures
@@ -341,36 +363,6 @@ async function init() {
 	);
 	testParticles.start();
 
-	function createSparkSystem(name, scene, emitterPosition) {
-		const particleSystem = new ParticleSystem(name, 2000, scene);
-		particleSystem.particleTexture = new Texture(
-			'https://playground.babylonjs.com/textures/flare.png',
-			scene,
-		);
-		particleSystem.emitter = emitterPosition;
-		particleSystem.color1 = new Color4(3, 3, 3, 1);
-		particleSystem.color2 = new Color4(3, 3, 3, 1);
-		particleSystem.minSize = 0.008;
-		particleSystem.maxSize = 0.008;
-		particleSystem.minEmitBox = new Vector3(-0.02, -0.02, -0.02);
-		particleSystem.maxEmitBox = new Vector3(0.02, 0.02, 0.02);
-		particleSystem.emitRate = 1000;
-		particleSystem.direction1 = new Vector3(-1, -1, -1);
-		particleSystem.direction2 = new Vector3(1, 1, 1);
-		particleSystem.minEmitPower = 3.0;
-		particleSystem.maxEmitPower = 3.0;
-		particleSystem.minLifeTime = 0.15;
-		particleSystem.maxLifeTime = 0.15;
-		return particleSystem;
-	}
-
-	function setupCollisionSparks(scene) {
-		return createSparkSystem(
-			'collisionSparks',
-			scene,
-			new Vector3(0, 0, 0),
-		);
-	}
 
 	const desktopCamera = setupDesktopCamera(scene);
 
@@ -385,7 +377,11 @@ async function init() {
 		}
 	});
 
-	const collisionSparks = setupCollisionSparks(scene);
+	const collisionSparks = createSparkSystem(
+		'collisionSparks',
+		scene,
+		new Vector3(0, 0, 0),
+	);
 	setupSabers(scene, xr, glowLayer, collisionSparks);
 
 	engine.runRenderLoop(() => scene.render());
