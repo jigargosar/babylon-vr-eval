@@ -442,9 +442,6 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 		return mesh;
 	};
 
-	// Collision tracking state
-	let lastCollisionTime = 0;
-	const collisionCooldown = 200; // ms to prevent spam
 
 	// Create collision indicator sphere
 	const collisionIndicator = MeshBuilder.CreateSphere(
@@ -564,8 +561,6 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 	}
 
 	async function checkSaberCollision() {
-		const currentTime = Date.now();
-		if (currentTime - lastCollisionTime < collisionCooldown) return;
 
 		// Calculate saber endpoints for cylinder-to-cylinder collision
 		const saberHeight = 1.5;
@@ -612,8 +607,6 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 		const collisionThreshold = SABER_DIAMETER; // Combined radii collision
 
 		if (distance < collisionThreshold) {
-			lastCollisionTime = currentTime;
-
 			// Visual feedback - turn indicator green
 			indicatorMaterial.emissiveColor = new Color3(0, 1.5, 0);
 
@@ -630,20 +623,6 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 
 			// Trigger haptic feedback on both controllers with error handling
 			try {
-				// if (
-				// 	sabers.left.controller?.inputSource?.gamepad
-				// 		?.vibrationActuator
-				// ) {
-				// 	await sabers.left.controller.pulse(0.8, 100);
-				// }
-				// if (
-				// 	sabers.right.controller?.inputSource?.gamepad
-				// 		?.vibrationActuator
-				// ) {
-				// 	await sabers.right.controller.pulse(0.8, 100);
-				// }
-				// debugger
-				// await sabers.left.controller.pulse(0.8, 100);
 				await sabers.left.controller.motionController.pulse(0.8, 100);
 				await sabers.right.controller.motionController.pulse(0.8, 100);
 
