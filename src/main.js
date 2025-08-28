@@ -387,8 +387,8 @@ async function init() {
 	window.addEventListener('resize', () => engine.resize());
 }
 
-function lineSegmentDistance(p1, q1, p2, q2) {
-	// Calculate closest distance between two 3D line segments
+function lineSegmentDistanceWithPoints(p1, q1, p2, q2) {
+	// Calculate closest distance between two 3D line segments and return closest points
 	const d1 = q1.subtract(p1);
 	const d2 = q2.subtract(p2);
 	const r = p1.subtract(p2);
@@ -420,7 +420,11 @@ function lineSegmentDistance(p1, q1, p2, q2) {
 	const closest1 = p1.add(d1.scale(t1));
 	const closest2 = p2.add(d2.scale(t2));
 	
-	return Vector3.Distance(closest1, closest2);
+	return {
+		distance: Vector3.Distance(closest1, closest2),
+		point1: closest1,
+		point2: closest2
+	};
 }
 
 function setupSabers(scene, xr, glowLayer, collisionSparks) {
@@ -582,8 +586,9 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 		const rightStart = rightSaber.position.subtract(rightDirection.scale(saberHeight / 2));
 		const rightEnd = rightSaber.position.add(rightDirection.scale(saberHeight / 2));
 
-		// Calculate closest distance between line segments
-		const distance = lineSegmentDistance(leftStart, leftEnd, rightStart, rightEnd);
+		// Calculate closest distance between line segments and get collision point
+		const collisionResult = lineSegmentDistanceWithPoints(leftStart, leftEnd, rightStart, rightEnd);
+		const distance = collisionResult.distance;
 		const collisionThreshold = SABER_DIAMETER; // Combined radii collision
 
 		if (distance < collisionThreshold) {
@@ -592,12 +597,8 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 			// Visual feedback - turn indicator green
 			indicatorMaterial.emissiveColor = new Color3(0, 1.5, 0);
 
-			// Trigger collision sparks
-			// noinspection UnnecessaryLocalVariableJS
-			const collisionPoint = Vector3.Center(
-				sabers.left.mesh.position,
-				sabers.right.mesh.position,
-			);
+			// Trigger collision sparks at actual collision point
+			const collisionPoint = Vector3.Center(collisionResult.point1, collisionResult.point2);
 			collisionSparks.emitter = collisionPoint;
 			if (!collisionSparks.isStarted()) {
 				collisionSparks.start();
