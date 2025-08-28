@@ -248,7 +248,6 @@ function setupFootprints(scene) {
 	// Create left and right foot shapes
 	const createFootprint = (name, xOffset) => {
 		// Create realistic foot shape using multiple components
-		const footGroup = [];
 
 		// Heel (circular back part)
 		const heel = MeshBuilder.CreateDisc(
@@ -388,42 +387,43 @@ async function init() {
 }
 
 function lineSegmentDistanceWithPoints(p1, q1, p2, q2) {
-	// Calculate closest distance between two 3D line segments and return closest points
+	// Calculate the closest distance between two 3D line segments and return closest points
 	const d1 = q1.subtract(p1);
 	const d2 = q2.subtract(p2);
 	const r = p1.subtract(p2);
-	
+
 	const a = Vector3.Dot(d1, d1);
 	const b = Vector3.Dot(d1, d2);
 	const c = Vector3.Dot(d2, d2);
 	const d = Vector3.Dot(d1, r);
 	const e = Vector3.Dot(d2, r);
-	
+
+	// noinspection SpellCheckingInspection
 	const denom = a * c - b * b;
-	
+
 	let t1, t2;
-	
+
 	if (denom < 0.000001) {
 		// Lines are parallel
 		t1 = 0;
-		t2 = (b > c ? d / b : e / c);
+		t2 = b > c ? d / b : e / c;
 	} else {
 		t1 = (b * e - c * d) / denom;
 		t2 = (a * e - b * d) / denom;
 	}
-	
+
 	// Clamp to segment bounds [0,1]
 	t1 = Math.max(0, Math.min(1, t1));
 	t2 = Math.max(0, Math.min(1, t2));
-	
+
 	// Calculate closest points
 	const closest1 = p1.add(d1.scale(t1));
 	const closest2 = p2.add(d2.scale(t2));
-	
+
 	return {
 		distance: Vector3.Distance(closest1, closest2),
 		point1: closest1,
-		point2: closest2
+		point2: closest2,
 	};
 }
 
@@ -574,21 +574,41 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 
 		// Get direction vector from rotation (sabers point along Y-axis after rotation)
 		const leftDirection = new Vector3(0, 1, 0);
-		leftDirection.rotateByQuaternionToRef(leftSaber.rotationQuaternion, leftDirection);
-		
+		leftDirection.rotateByQuaternionToRef(
+			leftSaber.rotationQuaternion,
+			leftDirection,
+		);
+
 		const rightDirection = new Vector3(0, 1, 0);
-		rightDirection.rotateByQuaternionToRef(rightSaber.rotationQuaternion, rightDirection);
+		rightDirection.rotateByQuaternionToRef(
+			rightSaber.rotationQuaternion,
+			rightDirection,
+		);
 
 		// Calculate endpoints
-		const leftStart = leftSaber.position.subtract(leftDirection.scale(saberHeight / 2));
-		const leftEnd = leftSaber.position.add(leftDirection.scale(saberHeight / 2));
-		
-		const rightStart = rightSaber.position.subtract(rightDirection.scale(saberHeight / 2));
-		const rightEnd = rightSaber.position.add(rightDirection.scale(saberHeight / 2));
+		const leftStart = leftSaber.position.subtract(
+			leftDirection.scale(saberHeight / 2),
+		);
+		const leftEnd = leftSaber.position.add(
+			leftDirection.scale(saberHeight / 2),
+		);
 
-		// Calculate closest distance between line segments and get collision point
-		const collisionResult = lineSegmentDistanceWithPoints(leftStart, leftEnd, rightStart, rightEnd);
+		const rightStart = rightSaber.position.subtract(
+			rightDirection.scale(saberHeight / 2),
+		);
+		const rightEnd = rightSaber.position.add(
+			rightDirection.scale(saberHeight / 2),
+		);
+
+		// Calculate the closest distance between line segments and get collision point
+		const collisionResult = lineSegmentDistanceWithPoints(
+			leftStart,
+			leftEnd,
+			rightStart,
+			rightEnd,
+		);
 		const distance = collisionResult.distance;
+		// noinspection UnnecessaryLocalVariableJS
 		const collisionThreshold = SABER_DIAMETER; // Combined radii collision
 
 		if (distance < collisionThreshold) {
@@ -598,7 +618,11 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 			indicatorMaterial.emissiveColor = new Color3(0, 1.5, 0);
 
 			// Trigger collision sparks at actual collision point
-			const collisionPoint = Vector3.Center(collisionResult.point1, collisionResult.point2);
+			// noinspection UnnecessaryLocalVariableJS
+			const collisionPoint = Vector3.Center(
+				collisionResult.point1,
+				collisionResult.point2,
+			);
 			collisionSparks.emitter = collisionPoint;
 			if (!collisionSparks.isStarted()) {
 				collisionSparks.start();
@@ -608,13 +632,13 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 			try {
 				if (
 					sabers.left.controller?.inputSource?.gamepad
-						?.hapticActuators
+						?.vibrationActuator
 				) {
 					await sabers.left.controller.pulse(0.8, 100);
 				}
 				if (
 					sabers.right.controller?.inputSource?.gamepad
-						?.hapticActuators
+						?.vibrationActuator
 				) {
 					await sabers.right.controller.pulse(0.8, 100);
 				}
