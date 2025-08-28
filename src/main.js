@@ -315,6 +315,27 @@ async function init() {
 	testParticles.maxLifeTime = 0.2;
 	testParticles.start();
 
+function setupCollisionSparks(scene) {
+	// Create particle system for collision sparks (same settings as test)
+	const collisionParticles = new ParticleSystem("collisionSparks", 2000, scene);
+	collisionParticles.particleTexture = new Texture("https://playground.babylonjs.com/textures/flare.png", scene);
+	collisionParticles.emitter = new Vector3(0, 0, 0); // Will be set dynamically
+	collisionParticles.color1 = new Color4(3, 3, 3, 1);
+	collisionParticles.color2 = new Color4(3, 3, 3, 1);
+	collisionParticles.minSize = 0.005;
+	collisionParticles.maxSize = 0.005;
+	collisionParticles.minEmitBox = new Vector3(-0.02, -0.02, -0.02);
+	collisionParticles.maxEmitBox = new Vector3(0.02, 0.02, 0.02);
+	collisionParticles.emitRate = 1000;
+	collisionParticles.direction1 = new Vector3(-1, -1, -1);
+	collisionParticles.direction2 = new Vector3(1, 1, 1);
+	collisionParticles.minEmitPower = 1.5;
+	collisionParticles.maxEmitPower = 3.0;
+	collisionParticles.minLifeTime = 0.1;
+	collisionParticles.maxLifeTime = 0.2;
+	return collisionParticles;
+}
+
 	const desktopCamera = setupDesktopCamera(scene);
 
 	// noinspection JSUnresolvedReference
@@ -328,14 +349,15 @@ async function init() {
 		}
 	});
 
-	setupSabers(scene, xr, glowLayer);
+	const collisionSparks = setupCollisionSparks(scene);
+	setupSabers(scene, xr, glowLayer, collisionSparks);
 
 	engine.runRenderLoop(() => scene.render());
 	window.addEventListener('resize', () => engine.resize());
 }
 
 
-function setupSabers(scene, xr, glowLayer) {
+function setupSabers(scene, xr, glowLayer, collisionSparks) {
 	// Helper function to create saber with all properties
 	const createSaber = (name, material, scene) => {
 		const mesh = MeshBuilder.CreateCylinder(name, { height: 1.5, diameter: 0.05 }, scene);
@@ -466,6 +488,13 @@ function setupSabers(scene, xr, glowLayer) {
 			// Visual feedback - turn indicator green
 			indicatorMaterial.emissiveColor = new Color3(0, 1.5, 0);
 			
+			// Trigger collision sparks
+			const collisionPoint = Vector3.Center(sabers.left.mesh.position, sabers.right.mesh.position);
+			collisionSparks.emitter = collisionPoint;
+			if (!collisionSparks.isStarted()) {
+				collisionSparks.start();
+			}
+			
 			// Trigger haptic feedback on both controllers with error handling
 			try {
 				if (sabers.left.controller?.inputSource?.gamepad?.hapticActuators) {
@@ -481,6 +510,11 @@ function setupSabers(scene, xr, glowLayer) {
 		} else {
 			// Reset indicator to red when no collision
 			indicatorMaterial.emissiveColor = new Color3(1, 0, 0);
+			
+			// Stop collision sparks when no collision
+			if (collisionSparks.isStarted()) {
+				collisionSparks.stop();
+			}
 		}
 	}
 
