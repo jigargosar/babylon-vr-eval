@@ -12,10 +12,7 @@ import { WebXRState } from '@babylonjs/core';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { GlowLayer } from '@babylonjs/core/Layers/glowLayer';
 import { WebXRFeatureName } from '@babylonjs/core/XR/webXRFeaturesManager';
-import {
-	lineSegmentDistanceWithPoints,
-	createSparkParticleSystem,
-} from './utils.js';
+import { createSparkParticleSystem, lineSegmentDistanceWithPoints, } from './utils.js';
 
 function setupDesktopCamera(scene) {
 	const camera = new UniversalCamera(
@@ -238,32 +235,83 @@ function setupNeonFloor(scene) {
 	return tube;
 }
 
+function createRoundedRectangle({ name, width, depth, cornerRadius, scene }) {
+	// Create path points for rounded rectangle
+	const path = [];
+	const segments = 8; // Points per corner arc
+
+	// Helper function to add arc points
+	const addArc = (centerX, centerZ, startAngle, endAngle) => {
+		for (let i = 0; i <= segments; i++) {
+			const angle = startAngle + (endAngle - startAngle) * (i / segments);
+			path.push(
+				new Vector3(
+					centerX + Math.cos(angle) * cornerRadius,
+					0,
+					centerZ + Math.sin(angle) * cornerRadius,
+				),
+			);
+		}
+	};
+
+	// Build rounded rectangle path (clockwise from top-right)
+	// Top-right corner
+	addArc(width / 2 - cornerRadius, depth / 2 - cornerRadius, 0, Math.PI / 2);
+	// Top-left corner
+	addArc(
+		-width / 2 + cornerRadius,
+		depth / 2 - cornerRadius,
+		Math.PI / 2,
+		Math.PI,
+	);
+	// Bottom-left corner
+	addArc(
+		-width / 2 + cornerRadius,
+		-depth / 2 + cornerRadius,
+		Math.PI,
+		(3 * Math.PI) / 2,
+	);
+	// Bottom-right corner
+	addArc(
+		width / 2 - cornerRadius,
+		-depth / 2 + cornerRadius,
+		(3 * Math.PI) / 2,
+		2 * Math.PI,
+	);
+	// Close the path
+	path.push(path[0]);
+
+	// Create rounded rectangle as tube
+	const roundedRect = MeshBuilder.CreateTube(
+		name,
+		{
+			path: path,
+			radius: 0.003, // Thin outline
+			tessellation: 4,
+			cap: 1,
+		},
+		scene,
+	);
+
+	return roundedRect;
+}
+
 function setupFootprints(scene, glowLayer) {
-	// Create footprints group for easy positioning control
 	const footprintsGroup = new TransformNode('footprintsGroup', scene);
 
-	// Simple rounded rectangle footprints
-	const footLength = 0.28;
-	const footWidth = 0.12;
-	const footSeparation = 0.25; // Distance between feet (shoulder width)
-	const height = 0.01; // Just above ground
 
 	// Create left and right foot shapes
 	const createFootprint = (name, xOffset) => {
-		// Create simple rounded rectangle footprint
-		const footprint = MeshBuilder.CreateBox(
+		// Create rounded rectangle footprint
+		const footprint = createRoundedRectangle({
 			name,
-			{
-				width: footWidth,
-				height: 0.005,
-				depth: footLength,
-			},
+			width: 0.12,
+			depth: 0.28,
+			cornerRadius: 0.05,
 			scene,
-		);
+		});
 		
-		footprint.position.x = xOffset;
-		footprint.position.y = height;
-		footprint.position.z = 0;
+		footprint.position = new Vector3(xOffset, 0.01, 0);
 		footprint.parent = footprintsGroup;
 
 		// Create glowing white material
@@ -278,7 +326,8 @@ function setupFootprints(scene, glowLayer) {
 		return footprint;
 	};
 
-	// Create left and right footprints
+	// Distance between feet (shoulder width)
+	const footSeparation = 0.25;
 	createFootprint('leftFootprint', -footSeparation / 2);
 	createFootprint('rightFootprint', footSeparation / 2);
 
