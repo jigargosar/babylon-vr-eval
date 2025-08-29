@@ -318,8 +318,6 @@ function setupFootprints(scene) {
 	return footprintsGroup;
 }
 
-
-
 function createSparkParticleSystem(name, scene, emitterPosition) {
 	// Create master line mesh for sparks
 	const sparkLineMaster = MeshBuilder.CreateCylinder(
@@ -400,7 +398,7 @@ function createSparkParticleSystem(name, scene, emitterPosition) {
 				// Orient line along direction vector (cylinder Y-axis points along direction)
 				const up = new Vector3(0, 1, 0);
 				// noinspection UnnecessaryLocalVariableJS
-                const rotationQuaternion = Quaternion.FromUnitVectorsToRef(
+				const rotationQuaternion = Quaternion.FromUnitVectorsToRef(
 					up,
 					dir,
 					new Quaternion(),
@@ -446,7 +444,7 @@ function createSparkParticleSystem(name, scene, emitterPosition) {
 		// Expose master mesh for glow layer integration
 		get masterMesh() {
 			return sparkLineMaster;
-		}
+		},
 	};
 }
 
@@ -531,11 +529,14 @@ function lineSegmentDistanceWithPoints(p1, q1, p2, q2) {
 }
 
 function setupSabers(scene, xr, glowLayer) {
-    const collisionSparks = createSparkParticleSystem('collisionSparks', scene, new Vector3(0, 0, 0));
-    glowLayer.addIncludedOnlyMesh(collisionSparks.masterMesh);
+	const collisionSparks = createSparkParticleSystem(
+		'collisionSparks',
+		scene,
+		new Vector3(0, 0, 0),
+	);
+	glowLayer.addIncludedOnlyMesh(collisionSparks.masterMesh);
 
-
-    const SABER_DIAMETER = 0.05;
+	const SABER_DIAMETER = 0.05;
 
 	// Helper function to create saber with all properties
 	const createSaber = (name, material, scene) => {
