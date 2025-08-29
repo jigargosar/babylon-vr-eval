@@ -321,92 +321,16 @@ function setupFootprints(scene) {
 }
 
 function setupCustomSparkTest(scene, glowLayer, position) {
-	// Create master line mesh for sparks
-	const sparkLineMaster = MeshBuilder.CreateCylinder(
-		'sparkLineMaster',
-		{ height: 0.03, diameter: 0.002 },
-		scene,
-	);
-
-	// Create bright white emissive material
-	const sparkMaterial = new StandardMaterial('sparkMaterial', scene);
-	sparkMaterial.diffuseColor = new Color3(0, 0, 0);
-	sparkMaterial.emissiveColor = new Color3(3, 3, 3);
-	sparkLineMaster.material = sparkMaterial;
-
-	// Add to glow layer
-	glowLayer.addIncludedOnlyMesh(sparkLineMaster);
-
-	// Hide master mesh
-	sparkLineMaster.setEnabled(false);
-
-	// Create spark instances pool
-	const sparkInstances = [];
-	const maxSparks = 100;
-
-	for (let i = 0; i < maxSparks; i++) {
-		const instance = sparkLineMaster.createInstance(`spark_${i}`);
-		instance.setEnabled(false);
-		sparkInstances.push({
-			mesh: instance,
-			active: false,
-			startTime: 0,
-			direction: new Vector3(0, 0, 0),
-			lifetime: 0.3,
-		});
-	}
-
-	// Animation loop
-	scene.registerBeforeRender(() => {
-		const currentTime = Date.now();
-
-		// Update active sparks
-		sparkInstances.forEach((spark) => {
-			if (spark.active) {
-				const elapsed = (currentTime - spark.startTime) / 1000;
-				if (elapsed > spark.lifetime) {
-					spark.active = false;
-					spark.mesh.setEnabled(false);
-				} else {
-					// Move spark along its direction
-					const distance = elapsed * 0.5; // Speed
-					spark.mesh.position = position.add(
-						spark.direction.scale(distance),
-					);
-				}
-			}
-		});
-
-		// Trigger multiple new sparks per frame
-		for (let i = 0; i < 5; i++) {
-			// Try to emit 5 sparks per frame
-			const inactiveSpark = sparkInstances.find((s) => !s.active);
-			if (inactiveSpark) {
-				// Random outward direction
-				const dir = new Vector3(
-					(Math.random() - 0.5) * 2,
-					(Math.random() - 0.5) * 2,
-					(Math.random() - 0.5) * 2,
-				).normalize();
-
-				inactiveSpark.active = true;
-				inactiveSpark.startTime = currentTime;
-				inactiveSpark.direction = dir;
-				inactiveSpark.mesh.position = position;
-
-				// Orient line along direction vector (cylinder Y-axis points along direction)
-				const up = new Vector3(0, 1, 0);
-				// noinspection UnnecessaryLocalVariableJS
-				const rotationQuaternion = Quaternion.FromUnitVectorsToRef(
-					up,
-					dir,
-					new Quaternion(),
-				);
-				inactiveSpark.mesh.rotationQuaternion = rotationQuaternion;
-				inactiveSpark.mesh.setEnabled(true);
-			}
-		}
-	});
+	// Create custom spark system using reusable function
+	const customSparks = createCustomSparkSystem('customTest', scene, position);
+	
+	// Add master mesh to glow layer (matching original behavior)
+	glowLayer.addIncludedOnlyMesh(customSparks.masterMesh);
+	
+	// Start the system immediately (matching original behavior)
+	customSparks.start();
+	
+	return customSparks; // Return for potential control
 }
 
 function createSparkSystem(name, scene, emitterPosition) {
@@ -553,6 +477,10 @@ function createCustomSparkSystem(name, scene, emitterPosition) {
 		dispose() {
 			this.stop();
 			sparkLineMaster.dispose();
+		},
+		// Expose master mesh for glow layer integration
+		get masterMesh() {
+			return sparkLineMaster;
 		}
 	};
 }
