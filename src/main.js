@@ -11,8 +11,6 @@ import '@babylonjs/loaders';
 import { WebXRState } from '@babylonjs/core';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { GlowLayer } from '@babylonjs/core/Layers/glowLayer';
-import { ParticleSystem } from '@babylonjs/core/Particles/particleSystem';
-import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { WebXRFeatureName } from '@babylonjs/core/XR/webXRFeaturesManager';
 
 function setupDesktopCamera(scene) {
@@ -333,28 +331,6 @@ function setupCustomSparkTest(scene, glowLayer, position) {
 	return customSparks; // Return for potential control
 }
 
-function createSparkSystem(name, scene, emitterPosition) {
-	const particleSystem = new ParticleSystem(name, 5000, scene);
-	particleSystem.particleTexture = new Texture(
-		'https://playground.babylonjs.com/textures/flare.png',
-		scene,
-	);
-	particleSystem.emitter = emitterPosition;
-	particleSystem.color1 = new Color4(5, 5, 5, 1);
-	particleSystem.color2 = new Color4(5, 5, 5, 1);
-	particleSystem.minSize = 0.004;
-	particleSystem.maxSize = 0.004;
-	particleSystem.minEmitBox = new Vector3(-0.01, -0.01, -0.01);
-	particleSystem.maxEmitBox = new Vector3(0.01, 0.01, 0.01);
-	particleSystem.emitRate = 3000;
-	particleSystem.direction1 = new Vector3(-1, -1, -1);
-	particleSystem.direction2 = new Vector3(1, 1, 1);
-	particleSystem.minEmitPower = 0.5;
-	particleSystem.maxEmitPower = 0.5;
-	particleSystem.minLifeTime = 0.15;
-	particleSystem.maxLifeTime = 0.15;
-	return particleSystem;
-}
 
 function createCustomSparkSystem(name, scene, emitterPosition) {
 	// Create master line mesh for sparks
@@ -497,13 +473,6 @@ async function init() {
 
 	setupScene(scene, glowLayer);
 
-	// Create minimal particle test using shared function
-	const testParticles = createSparkSystem(
-		'test',
-		scene,
-		new Vector3(0.5, 1.7, 0.8),
-	);
-	testParticles.start();
 
 	// Create custom mesh-based spark test
 	setupCustomSparkTest(scene, glowLayer, new Vector3(-0.5, 1.7, 0.8));
@@ -529,16 +498,9 @@ async function init() {
 		}
 	});
 
-	// Toggle particle system for saber collisions
-	// const useCustomSparks = false;
-	const useCustomSparks = true;
-	let collisionSparks;
-	if (useCustomSparks) {
-		collisionSparks = createCustomSparkSystem('collisionSparks', scene, new Vector3(0, 0, 0));
-		glowLayer.addIncludedOnlyMesh(collisionSparks.masterMesh);
-	} else {
-		collisionSparks = createSparkSystem('collisionSparks', scene, new Vector3(0, 0, 0));
-	}
+	// Create collision sparks using custom mesh system
+	const collisionSparks = createCustomSparkSystem('collisionSparks', scene, new Vector3(0, 0, 0));
+	glowLayer.addIncludedOnlyMesh(collisionSparks.masterMesh);
 
 	setupSabers(scene, xr, glowLayer, collisionSparks);
 
