@@ -13,6 +13,7 @@ import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { GlowLayer } from '@babylonjs/core/Layers/glowLayer';
 import { ParticleSystem } from '@babylonjs/core/Particles/particleSystem';
 import { Texture } from '@babylonjs/core/Materials/Textures/texture';
+import { WebXRFeatureName } from '@babylonjs/core/XR/webXRFeaturesManager';
 
 function setupDesktopCamera(scene) {
 	const camera = new UniversalCamera(
@@ -395,6 +396,7 @@ function setupCustomSparkTest(scene, glowLayer, position) {
 
 				// Orient line along direction vector (cylinder Y-axis points along direction)
 				const up = new Vector3(0, 1, 0);
+				// noinspection UnnecessaryLocalVariableJS
 				const rotationQuaternion = Quaternion.FromUnitVectorsToRef(
 					up,
 					dir,
@@ -458,6 +460,14 @@ async function init() {
 	// noinspection JSUnresolvedReference
 	const xr = await scene.createDefaultXRExperienceAsync({
 		disableTeleportation: true,
+	});
+
+	const featureManager = xr.baseExperience.featuresManager;
+	featureManager.enableFeature(WebXRFeatureName.MOVEMENT, 'latest', {
+		xrInput: xr.input,
+		movementSpeed: 0.3,
+		movementThreshold: 0.4,
+		rotationSpeed: 0.5,
 	});
 
 	xr.baseExperience.onStateChangedObservable.add((state) => {
