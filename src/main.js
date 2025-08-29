@@ -498,11 +498,7 @@ async function init() {
 		}
 	});
 
-	// Create collision sparks using custom mesh system
-	const collisionSparks = createSparkParticleSystem('collisionSparks', scene, new Vector3(0, 0, 0));
-	glowLayer.addIncludedOnlyMesh(collisionSparks.masterMesh);
-
-	setupSabers(scene, xr, glowLayer, collisionSparks);
+	setupSabers(scene, xr, glowLayer);
 
 	engine.runRenderLoop(() => scene.render());
 	window.addEventListener('resize', () => engine.resize());
@@ -549,8 +545,12 @@ function lineSegmentDistanceWithPoints(p1, q1, p2, q2) {
 	};
 }
 
-function setupSabers(scene, xr, glowLayer, collisionSparks) {
-	const SABER_DIAMETER = 0.05;
+function setupSabers(scene, xr, glowLayer) {
+    const collisionSparks = createSparkParticleSystem('collisionSparks', scene, new Vector3(0, 0, 0));
+    glowLayer.addIncludedOnlyMesh(collisionSparks.masterMesh);
+
+
+    const SABER_DIAMETER = 0.05;
 
 	// Helper function to create saber with all properties
 	const createSaber = (name, material, scene) => {
