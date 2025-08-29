@@ -148,18 +148,18 @@ function setupScene(scene, glowLayer) {
 		createGround: false,
 	});
 
-	const playAreaGroup = setupPlayArea(scene);
+	const playAreaGroup = setupPlayArea(scene, glowLayer);
 	playAreaGroup.position.y = 0;
 }
 
-function setupPlayArea(scene) {
+function setupPlayArea(scene, glowLayer) {
 	const playAreaGroup = new TransformNode('playAreaGroup', scene);
 
 	const neonFloor = setupNeonFloor(scene);
 	neonFloor.parent = playAreaGroup;
 	neonFloor.position.y = 0;
 
-	const footprintsGroup = setupFootprints(scene);
+	const footprintsGroup = setupFootprints(scene, glowLayer);
 	footprintsGroup.parent = playAreaGroup;
 	footprintsGroup.position.y = 0.01;
 
@@ -238,11 +238,11 @@ function setupNeonFloor(scene) {
 	return tube;
 }
 
-function setupFootprints(scene) {
+function setupFootprints(scene, glowLayer) {
 	// Create footprints group for easy positioning control
 	const footprintsGroup = new TransformNode('footprintsGroup', scene);
 
-	// Create foot-shaped outlines at center for starting position
+	// Simple rounded rectangle footprints
 	const footLength = 0.28;
 	const footWidth = 0.12;
 	const footSeparation = 0.25; // Distance between feet (shoulder width)
@@ -250,69 +250,32 @@ function setupFootprints(scene) {
 
 	// Create left and right foot shapes
 	const createFootprint = (name, xOffset) => {
-		// Create realistic foot shape using multiple components
-
-		// Heel (circular back part)
-		const heel = MeshBuilder.CreateDisc(
-			name + '_heel',
+		// Create simple rounded rectangle footprint
+		const footprint = MeshBuilder.CreateBox(
+			name,
 			{
-				radius: footWidth * 0.4,
-				tessellation: 12,
+				width: footWidth,
+				height: 0.005,
+				depth: footLength,
 			},
 			scene,
 		);
-		heel.position.x = xOffset;
-		heel.position.y = height;
-		heel.position.z = -footLength * 0.3;
-		heel.rotation.x = Math.PI / 2;
-		heel.parent = footprintsGroup; // Parent to group
+		
+		footprint.position.x = xOffset;
+		footprint.position.y = height;
+		footprint.position.z = 0;
+		footprint.parent = footprintsGroup;
 
-		// Arch (narrower middle section)
-		const arch = MeshBuilder.CreateDisc(
-			name + '_arch',
-			{
-				radius: footWidth * 0.5,
-				tessellation: 12,
-			},
-			scene,
-		);
-		arch.position.x = xOffset;
-		arch.position.y = height;
-		arch.position.z = 0;
-		arch.rotation.x = Math.PI / 2;
-		arch.scaling.x = 0.6; // Narrower arch
-		arch.scaling.z = 0.8;
-		arch.parent = footprintsGroup; // Parent to group
+		// Create glowing white material
+		const footprintMaterial = new StandardMaterial(name + 'Material', scene);
+		footprintMaterial.diffuseColor = new Color3(0, 0, 0);
+		footprintMaterial.emissiveColor = new Color3(1.2, 1.2, 1.2);
+		footprint.material = footprintMaterial;
 
-		// Toe area (wider front part)
-		const toe = MeshBuilder.CreateDisc(
-			name + '_toe',
-			{
-				radius: footWidth * 0.45,
-				tessellation: 12,
-			},
-			scene,
-		);
-		toe.position.x = xOffset;
-		toe.position.y = height;
-		toe.position.z = footLength * 0.25;
-		toe.rotation.x = Math.PI / 2;
-		toe.scaling.x = 1.1; // Wider toe area
-		toe.scaling.z = 0.7;
-		toe.parent = footprintsGroup; // Parent to group
+		// Add to glow layer
+		glowLayer.addIncludedOnlyMesh(footprint);
 
-		// Create white material
-		const whiteMaterial = new StandardMaterial(name + 'Material', scene);
-		whiteMaterial.diffuseColor = new Color3(1, 1, 1);
-		whiteMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
-
-		// Apply material to all parts
-		heel.material = whiteMaterial;
-		arch.material = whiteMaterial;
-		toe.material = whiteMaterial;
-
-		// Keep as separate meshes (simpler approach)
-		return { heel, arch, toe };
+		return footprint;
 	};
 
 	// Create left and right footprints
