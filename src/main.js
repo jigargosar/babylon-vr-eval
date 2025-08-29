@@ -318,9 +318,9 @@ function setupFootprints(scene) {
 	return footprintsGroup;
 }
 
-function setupCustomSparkTest(scene, glowLayer, position) {
+function setupSparkParticleTest(scene, glowLayer, position) {
 	// Create custom spark system using reusable function
-	const customSparks = createCustomSparkSystem('customTest', scene, position);
+	const customSparks = createSparkParticleSystem('customTest', scene, position);
 	
 	// Add master mesh to glow layer (matching original behavior)
 	glowLayer.addIncludedOnlyMesh(customSparks.masterMesh);
@@ -332,7 +332,7 @@ function setupCustomSparkTest(scene, glowLayer, position) {
 }
 
 
-function createCustomSparkSystem(name, scene, emitterPosition) {
+function createSparkParticleSystem(name, scene, emitterPosition) {
 	// Create master line mesh for sparks
 	const sparkLineMaster = MeshBuilder.CreateCylinder(
 		name + '_master',
@@ -475,7 +475,7 @@ async function init() {
 
 
 	// Create custom mesh-based spark test
-	setupCustomSparkTest(scene, glowLayer, new Vector3(-0.5, 1.7, 0.8));
+	setupSparkParticleTest(scene, glowLayer, new Vector3(-0.5, 1.7, 0.8));
 
 	const desktopCamera = setupDesktopCamera(scene);
 
@@ -499,7 +499,7 @@ async function init() {
 	});
 
 	// Create collision sparks using custom mesh system
-	const collisionSparks = createCustomSparkSystem('collisionSparks', scene, new Vector3(0, 0, 0));
+	const collisionSparks = createSparkParticleSystem('collisionSparks', scene, new Vector3(0, 0, 0));
 	glowLayer.addIncludedOnlyMesh(collisionSparks.masterMesh);
 
 	setupSabers(scene, xr, glowLayer, collisionSparks);
