@@ -529,11 +529,17 @@ async function init() {
 		}
 	});
 
-	const collisionSparks = createSparkSystem(
-		'collisionSparks',
-		scene,
-		new Vector3(0, 0, 0),
-	);
+	// Toggle particle system for saber collisions
+	// const useCustomSparks = false;
+	const useCustomSparks = true;
+	let collisionSparks;
+	if (useCustomSparks) {
+		collisionSparks = createCustomSparkSystem('collisionSparks', scene, new Vector3(0, 0, 0));
+		glowLayer.addIncludedOnlyMesh(collisionSparks.masterMesh);
+	} else {
+		collisionSparks = createSparkSystem('collisionSparks', scene, new Vector3(0, 0, 0));
+	}
+
 	setupSabers(scene, xr, glowLayer, collisionSparks);
 
 	engine.runRenderLoop(() => scene.render());
