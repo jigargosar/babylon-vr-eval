@@ -324,25 +324,25 @@ function setupCustomSparkTest(scene, glowLayer, position) {
 	const sparkLineMaster = MeshBuilder.CreateCylinder(
 		'sparkLineMaster',
 		{ height: 0.03, diameter: 0.002 },
-		scene
+		scene,
 	);
-	
+
 	// Create bright white emissive material
 	const sparkMaterial = new StandardMaterial('sparkMaterial', scene);
 	sparkMaterial.diffuseColor = new Color3(0, 0, 0);
 	sparkMaterial.emissiveColor = new Color3(3, 3, 3);
 	sparkLineMaster.material = sparkMaterial;
-	
+
 	// Add to glow layer
 	glowLayer.addIncludedOnlyMesh(sparkLineMaster);
-	
+
 	// Hide master mesh
 	sparkLineMaster.setEnabled(false);
-	
+
 	// Create spark instances pool
 	const sparkInstances = [];
 	const maxSparks = 100;
-	
+
 	for (let i = 0; i < maxSparks; i++) {
 		const instance = sparkLineMaster.createInstance(`spark_${i}`);
 		instance.setEnabled(false);
@@ -351,16 +351,16 @@ function setupCustomSparkTest(scene, glowLayer, position) {
 			active: false,
 			startTime: 0,
 			direction: new Vector3(0, 0, 0),
-			lifetime: 0.3
+			lifetime: 0.3,
 		});
 	}
-	
+
 	// Animation loop
 	scene.registerBeforeRender(() => {
 		const currentTime = Date.now();
-		
+
 		// Update active sparks
-		sparkInstances.forEach(spark => {
+		sparkInstances.forEach((spark) => {
 			if (spark.active) {
 				const elapsed = (currentTime - spark.startTime) / 1000;
 				if (elapsed > spark.lifetime) {
@@ -369,30 +369,37 @@ function setupCustomSparkTest(scene, glowLayer, position) {
 				} else {
 					// Move spark along its direction
 					const distance = elapsed * 0.5; // Speed
-					spark.mesh.position = position.add(spark.direction.scale(distance));
+					spark.mesh.position = position.add(
+						spark.direction.scale(distance),
+					);
 				}
 			}
 		});
-		
+
 		// Trigger multiple new sparks per frame
-		for (let i = 0; i < 5; i++) { // Try to emit 5 sparks per frame
-			const inactiveSpark = sparkInstances.find(s => !s.active);
+		for (let i = 0; i < 5; i++) {
+			// Try to emit 5 sparks per frame
+			const inactiveSpark = sparkInstances.find((s) => !s.active);
 			if (inactiveSpark) {
 				// Random outward direction
 				const dir = new Vector3(
 					(Math.random() - 0.5) * 2,
 					(Math.random() - 0.5) * 2,
-					(Math.random() - 0.5) * 2
+					(Math.random() - 0.5) * 2,
 				).normalize();
-				
+
 				inactiveSpark.active = true;
 				inactiveSpark.startTime = currentTime;
 				inactiveSpark.direction = dir;
 				inactiveSpark.mesh.position = position;
-				
+
 				// Orient line along direction vector (cylinder Y-axis points along direction)
 				const up = new Vector3(0, 1, 0);
-				const rotationQuaternion = Quaternion.FromUnitVectorsToRef(up, dir, new Quaternion());
+				const rotationQuaternion = Quaternion.FromUnitVectorsToRef(
+					up,
+					dir,
+					new Quaternion(),
+				);
 				inactiveSpark.mesh.rotationQuaternion = rotationQuaternion;
 				inactiveSpark.mesh.setEnabled(true);
 			}
@@ -526,7 +533,6 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 		return mesh;
 	};
 
-
 	// Create collision indicator sphere
 	const collisionIndicator = MeshBuilder.CreateSphere(
 		'collisionIndicator',
@@ -645,7 +651,6 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 	}
 
 	async function checkSaberCollision() {
-
 		// Calculate saber endpoints for cylinder-to-cylinder collision
 		const saberHeight = 1.5;
 		const leftSaber = sabers.left.mesh;
@@ -709,11 +714,10 @@ function setupSabers(scene, xr, glowLayer, collisionSparks) {
 			try {
 				await sabers.left.controller.motionController.pulse(0.8, 100);
 				await sabers.right.controller.motionController.pulse(0.8, 100);
-
 			} catch (error) {
 				// Turn error indicator red
 				errorMaterial.emissiveColor = new Color3(1.5, 0, 0);
-				console.error(error)
+				console.error(error);
 			}
 		} else {
 			// Reset indicator to red when no collision
