@@ -318,7 +318,7 @@ function setupFootprints(scene) {
 	return footprintsGroup;
 }
 
-function createSparkParticleSystem(name, scene, emitterPosition) {
+function createSparkParticleSystem(name, scene, glowLayer) {
 	// Create master line mesh for sparks
 	const sparkLineMaster = MeshBuilder.CreateCylinder(
 		name + '_master',
@@ -334,6 +334,9 @@ function createSparkParticleSystem(name, scene, emitterPosition) {
 
 	// Hide master mesh
 	sparkLineMaster.setEnabled(false);
+
+	// Add to glow layer
+	glowLayer.addIncludedOnlyMesh(sparkLineMaster);
 
 	// Create spark instances pool
 	const sparkInstances = [];
@@ -353,7 +356,7 @@ function createSparkParticleSystem(name, scene, emitterPosition) {
 
 	// System state
 	let isRunning = false;
-	let currentEmitter = emitterPosition.clone();
+	let emitterPosition = new Vector3(0, 0, 0);
 
 	// Animation loop registration
 	const animationCallback = () => {
@@ -371,7 +374,7 @@ function createSparkParticleSystem(name, scene, emitterPosition) {
 				} else {
 					// Move spark along its direction
 					const distance = elapsed * 0.5; // Speed
-					spark.mesh.position = currentEmitter.add(
+					spark.mesh.position = emitterPosition.add(
 						spark.direction.scale(distance),
 					);
 				}
@@ -393,7 +396,7 @@ function createSparkParticleSystem(name, scene, emitterPosition) {
 				inactiveSpark.active = true;
 				inactiveSpark.startTime = currentTime;
 				inactiveSpark.direction = dir;
-				inactiveSpark.mesh.position = currentEmitter;
+				inactiveSpark.mesh.position = emitterPosition;
 
 				// Orient line along direction vector (cylinder Y-axis points along direction)
 				const up = new Vector3(0, 1, 0);
@@ -411,19 +414,16 @@ function createSparkParticleSystem(name, scene, emitterPosition) {
 
 	// ParticleSystem-compatible interface
 	return {
-		get emitter() {
-			return currentEmitter;
+		setEmitterPosition(position) {
+			emitterPosition = position.clone();
 		},
-		set emitter(position) {
-			currentEmitter = position.clone();
-		},
-		start() {
+		ensureStarted() {
 			if (!isRunning) {
 				isRunning = true;
 				scene.registerBeforeRender(animationCallback);
 			}
 		},
-		stop() {
+		ensureStopped() {
 			if (isRunning) {
 				isRunning = false;
 				scene.unregisterBeforeRender(animationCallback);
@@ -433,17 +433,6 @@ function createSparkParticleSystem(name, scene, emitterPosition) {
 					spark.mesh.setEnabled(false);
 				});
 			}
-		},
-		isStarted() {
-			return isRunning;
-		},
-		dispose() {
-			this.stop();
-			sparkLineMaster.dispose();
-		},
-		// Expose master mesh for glow layer integration
-		get masterMesh() {
-			return sparkLineMaster;
 		},
 	};
 }
@@ -532,9 +521,8 @@ function setupSabers(scene, xr, glowLayer) {
 	const collisionSparks = createSparkParticleSystem(
 		'collisionSparks',
 		scene,
-		new Vector3(0, 0, 0),
+		glowLayer,
 	);
-	glowLayer.addIncludedOnlyMesh(collisionSparks.masterMesh);
 
 	const SABER_DIAMETER = 0.05;
 
@@ -722,10 +710,8 @@ function setupSabers(scene, xr, glowLayer) {
 				collisionResult.point1,
 				collisionResult.point2,
 			);
-			collisionSparks.emitter = collisionPoint;
-			if (!collisionSparks.isStarted()) {
-				collisionSparks.start();
-			}
+			collisionSparks.setEmitterPosition(collisionPoint);
+			collisionSparks.ensureStarted();
 
 			// Trigger haptic feedback on both controllers with error handling
 			try {
@@ -741,9 +727,7 @@ function setupSabers(scene, xr, glowLayer) {
 			indicatorMaterial.emissiveColor = new Color3(1, 0, 0);
 
 			// Stop collision sparks when no collision
-			if (collisionSparks.isStarted()) {
-				collisionSparks.stop();
-			}
+			collisionSparks.ensureStopped();
 		}
 	}
 }
