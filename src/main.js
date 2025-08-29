@@ -432,6 +432,131 @@ function createSparkSystem(name, scene, emitterPosition) {
 	return particleSystem;
 }
 
+function createCustomSparkSystem(name, scene, emitterPosition) {
+	// Create master line mesh for sparks
+	const sparkLineMaster = MeshBuilder.CreateCylinder(
+		name + '_master',
+		{ height: 0.03, diameter: 0.002 },
+		scene,
+	);
+
+	// Create bright white emissive material
+	const sparkMaterial = new StandardMaterial(name + '_material', scene);
+	sparkMaterial.diffuseColor = new Color3(0, 0, 0);
+	sparkMaterial.emissiveColor = new Color3(3, 3, 3);
+	sparkLineMaster.material = sparkMaterial;
+
+	// Hide master mesh
+	sparkLineMaster.setEnabled(false);
+
+	// Create spark instances pool
+	const sparkInstances = [];
+	const maxSparks = 100;
+
+	for (let i = 0; i < maxSparks; i++) {
+		const instance = sparkLineMaster.createInstance(`${name}_spark_${i}`);
+		instance.setEnabled(false);
+		sparkInstances.push({
+			mesh: instance,
+			active: false,
+			startTime: 0,
+			direction: new Vector3(0, 0, 0),
+			lifetime: 0.3,
+		});
+	}
+
+	// System state
+	let isRunning = false;
+	let currentEmitter = emitterPosition.clone();
+
+	// Animation loop registration
+	const animationCallback = () => {
+		if (!isRunning) return;
+
+		const currentTime = Date.now();
+
+		// Update active sparks
+		sparkInstances.forEach((spark) => {
+			if (spark.active) {
+				const elapsed = (currentTime - spark.startTime) / 1000;
+				if (elapsed > spark.lifetime) {
+					spark.active = false;
+					spark.mesh.setEnabled(false);
+				} else {
+					// Move spark along its direction
+					const distance = elapsed * 0.5; // Speed
+					spark.mesh.position = currentEmitter.add(
+						spark.direction.scale(distance),
+					);
+				}
+			}
+		});
+
+		// Trigger multiple new sparks per frame
+		for (let i = 0; i < 5; i++) {
+			// Try to emit 5 sparks per frame
+			const inactiveSpark = sparkInstances.find((s) => !s.active);
+			if (inactiveSpark) {
+				// Random outward direction
+				const dir = new Vector3(
+					(Math.random() - 0.5) * 2,
+					(Math.random() - 0.5) * 2,
+					(Math.random() - 0.5) * 2,
+				).normalize();
+
+				inactiveSpark.active = true;
+				inactiveSpark.startTime = currentTime;
+				inactiveSpark.direction = dir;
+				inactiveSpark.mesh.position = currentEmitter;
+
+				// Orient line along direction vector (cylinder Y-axis points along direction)
+				const up = new Vector3(0, 1, 0);
+				const rotationQuaternion = Quaternion.FromUnitVectorsToRef(
+					up,
+					dir,
+					new Quaternion(),
+				);
+				inactiveSpark.mesh.rotationQuaternion = rotationQuaternion;
+				inactiveSpark.mesh.setEnabled(true);
+			}
+		}
+	};
+
+	// ParticleSystem-compatible interface
+	return {
+		get emitter() {
+			return currentEmitter;
+		},
+		set emitter(position) {
+			currentEmitter = position.clone();
+		},
+		start() {
+			if (!isRunning) {
+				isRunning = true;
+				scene.registerBeforeRender(animationCallback);
+			}
+		},
+		stop() {
+			if (isRunning) {
+				isRunning = false;
+				scene.unregisterBeforeRender(animationCallback);
+				// Deactivate all sparks
+				sparkInstances.forEach((spark) => {
+					spark.active = false;
+					spark.mesh.setEnabled(false);
+				});
+			}
+		},
+		isStarted() {
+			return isRunning;
+		},
+		dispose() {
+			this.stop();
+			sparkLineMaster.dispose();
+		}
+	};
+}
+
 async function init() {
 	const canvas = document.getElementById('renderCanvas');
 	// noinspection JSCheckFunctionSignatures
